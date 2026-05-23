@@ -1,0 +1,16 @@
+<layer>
+  <name>helsinki_buildings_wfs</name>
+  <id>LayerInfoImpl-ad77682:19e37a764fe:-7ffc</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-37b18cc6:14d5d036d48:-8000</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-ad77682:19e37a764fe:-7ffd</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+  <dateCreated>2026-05-17 20:42:32.169 UTC</dateCreated>
+</layer>

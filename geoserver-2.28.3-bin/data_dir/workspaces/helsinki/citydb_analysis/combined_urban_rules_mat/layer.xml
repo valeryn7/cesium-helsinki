@@ -1,0 +1,16 @@
+<layer>
+  <name>combined_urban_rules_mat</name>
+  <id>LayerInfoImpl-1c06f61b:19e53601a85:-7fef</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--570ae188:124761b8d78:-7fe0</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-1c06f61b:19e53601a85:-7ff0</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+  <dateCreated>2026-05-23 05:47:49.107 UTC</dateCreated>
+</layer>

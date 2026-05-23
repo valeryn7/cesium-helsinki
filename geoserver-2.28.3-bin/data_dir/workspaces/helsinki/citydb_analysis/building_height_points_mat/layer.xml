@@ -1,0 +1,22 @@
+<layer>
+  <name>building_height_points_mat</name>
+  <id>LayerInfoImpl-1c5a278b:19e41a412e3:-7ffc</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-1c5a278b:19e41a412e3:-7bf4</id>
+  </defaultStyle>
+  <styles class="linked-hash-set">
+    <style>
+      <id>StyleInfoImpl-1c5a278b:19e41a412e3:-7bf4</id>
+    </style>
+  </styles>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-1c5a278b:19e41a412e3:-7ffd</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+  <dateCreated>2026-05-19 19:10:28.186 UTC</dateCreated>
+  <dateModified>2026-05-19 19:25:23.50 UTC</dateModified>
+</layer>
