@@ -1,19 +1,37 @@
 ORDEN RECOMENDADO PARA LEVANTAR TODO
 ====================================
 
-1. Asegurarse de que PostgreSQL esté corriendo.
-2. Desde la carpeta cesium-helsinki ejecutar:
+1. Tener en PostgreSQL una base de datos con PostGIS habilitado.
+   Configurar los datos de conexión en db_config.
 
-   ./start_server.sh
+2. Colocar dentro de la carpeta gml los archivos importados de Helsinki.
+   Actualmente ya hay un GML cargado.
 
-3. Abrir:
+3. Ejecutar la importación GML:
 
-   http://localhost:8001
+   ./import_gml_and_generate.sh
 
-Si falta helsinki_tiles/tileset.json, ejecutar antes:
+4. En QGIS, seguir el archivo:
 
-   ./generate_tiles.sh
+   sql/INSTRUCCIONES_WFS
 
+   Ese archivo explica cómo traer el WFS necesario y guardarlo en la base de datos.
+
+5. Ejecutar el análisis y publicación en GeoServer:
+
+   ./run_analysis_and_publish.sh
+
+   Este script corre los SQL y publica las capas en GeoServer.
+
+6. Levantar el servidor:
+
+   ./start_server
+
+   Esto levanta GeoServer y la web en:
+
+   http://localhost:8003
+
+7. Abrir la web y verificar que carguen todas las capas correctamente.
 
 PROYECTO: Helsinki 3D Analysis
 ================================
