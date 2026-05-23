@@ -1,0 +1,83 @@
+commandset:
+    command: tile
+    custom_style: materials_for_features.csv
+    db_host: localhost
+    db_name: citydb_test
+    db_password: ''
+    db_port: 5432
+    db_schema: citydb
+    db_username: valerynater
+    output_file: advise.yml
+    output_folder: shared
+    separate_tilesets: null
+    style_absence_behavior: fall-down
+    style_mode: objectclass-based
+    tiler_app: pg2b3dm
+    tilers_path: tiler_app/
+    transparency: opaque
+max_features: 93
+objectclasses:
+-   name: Bridge
+    properties:
+    - brid__isMovable
+    - con__dateOfConstruction
+    - core__name
+    - core__relativeToTerrain
+    - core__relativeToWater
+-   name: Building
+    properties:
+    - bldg__address
+    - bldg__class
+    - bldg__function
+    - bldg__roofType
+    - bldg__storeysAboveGround
+    - bldg__usage
+    - con__dateOfConstruction
+    - con__dateOfDemolition
+    - con__height
+    - con__height.con__highReference
+    - con__height.con__lowReference
+    - con__height.con__status
+    - con__height.con__value
+    - core__appearance
+    - core__externalReference
+    - gen__ID
+    - gen__RATU
+    - gen__VTJ_PRT
+-   name: GroundSurface
+    properties:
+    - gen__Area
+    - gen__FaceUUID
+    - gen__ZMin
+    - gen__ZMinASL
+    - null
+-   name: OuterCeilingSurface
+    properties:
+    - null
+-   name: OuterFloorSurface
+    properties:
+    - null
+-   name: RoofSurface
+    properties:
+    - gen__Area
+    - gen__FaceUUID
+    - gen__RoofOrientation
+    - gen__RoofPitch
+    - gen__ZMax
+    - gen__ZMaxASL
+    - gen__ZMin
+    - gen__ZMinASL
+    - null
+-   name: TINRelief
+    properties:
+    - core__appearance
+    - dem__lod
+-   name: WallSurface
+    properties:
+    - gen__Area
+    - gen__FaceUUID
+    - gen__ZMax
+    - gen__ZMaxASL
+    - gen__ZMin
+    - gen__ZMinASL
+    - null
