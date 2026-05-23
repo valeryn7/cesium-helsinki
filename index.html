@@ -1,0 +1,855 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Helsinki 3D - Urban Analysis</title>
+
+  <script src="https://cesium.com/downloads/cesiumjs/releases/1.127/Build/Cesium/Cesium.js"></script>
+  <link href="https://cesium.com/downloads/cesiumjs/releases/1.127/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
+
+  <style>
+    html,
+    body,
+    #cesiumContainer {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background: #05070a;
+    }
+
+    #panel {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 10;
+      width: 420px;
+      max-width: calc(100vw - 28px);
+      max-height: calc(100vh - 28px);
+      overflow-y: auto;
+      background: rgba(8, 13, 24, 0.93);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(12px);
+    }
+
+    #panel h1 {
+      font-size: 17px;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    #panel p {
+      margin: 0 0 12px;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 12.5px;
+      line-height: 1.45;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      margin-bottom: 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      font-size: 12px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #facc15;
+      box-shadow: 0 0 10px rgba(250, 204, 21, 0.9);
+    }
+
+    .dot.ok {
+      background: #22c55e;
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.9);
+    }
+
+    .dot.error {
+      background: #ef4444;
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.9);
+    }
+
+    .section-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255, 255, 255, 0.5);
+      margin: 12px 0 8px;
+    }
+
+    .group-title {
+      margin-top: 10px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(56, 189, 248, 0.11);
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.86);
+    }
+
+    .layer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 10px;
+      margin-bottom: 7px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .layer-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .legend-poly,
+    .legend-line,
+    .legend-point {
+      width: 14px;
+      height: 11px;
+      border-radius: 3px;
+      flex: 0 0 auto;
+    }
+
+    .legend-line {
+      height: 4px;
+      border-radius: 999px;
+    }
+
+    .legend-point {
+      width: 11px;
+      height: 11px;
+      border-radius: 999px;
+    }
+
+    .layer-name {
+      font-size: 13px;
+      line-height: 1.2;
+    }
+
+    .layer-desc {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.55);
+      margin-top: 2px;
+    }
+
+    .switch {
+      position: relative;
+      width: 42px;
+      height: 24px;
+      flex: 0 0 auto;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      transition: 0.2s;
+    }
+
+    .slider:before {
+      content: "";
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      left: 3px;
+      top: 3px;
+      background: white;
+      border-radius: 999px;
+      transition: 0.2s;
+    }
+
+    input:checked+.slider {
+      background: #38bdf8;
+    }
+
+    input:checked+.slider:before {
+      transform: translateX(18px);
+    }
+
+    .button-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 11px;
+      background: rgba(56, 189, 248, 0.18);
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid rgba(56, 189, 248, 0.28);
+    }
+
+    button:hover {
+      background: rgba(56, 189, 248, 0.28);
+    }
+
+    #popup {
+      position: absolute;
+      right: 14px;
+      top: 14px;
+      z-index: 11;
+      width: 360px;
+      max-width: calc(100vw - 28px);
+      display: none;
+      background: rgba(8, 13, 24, 0.94);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(12px);
+    }
+
+    #popup h2 {
+      margin: 0 0 8px;
+      font-size: 15px;
+    }
+
+    #popup p {
+      margin: 5px 0;
+      font-size: 12.5px;
+      color: rgba(255, 255, 255, 0.78);
+      line-height: 1.4;
+    }
+
+    #popup button {
+      margin-top: 10px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.14);
+    }
+
+    @media (max-width: 700px) {
+      #panel {
+        top: 10px;
+        left: 10px;
+        width: calc(100vw - 20px);
+        max-height: 55vh;
+        padding: 12px;
+      }
+
+      #popup {
+        left: 10px;
+        right: 10px;
+        top: auto;
+        bottom: 10px;
+        width: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="cesiumContainer"></div>
+
+  <div id="panel">
+    <h1>Helsinki 3D Urban Analysis</h1>
+    <p>
+      Modelo 3D desde 3D Tiles y capas WFS desde GeoServer.
+    </p>
+
+    <div class="status">
+      <span id="statusDot" class="dot"></span>
+      <span id="statusText">Cargando datos...</span>
+    </div>
+
+    <div class="section-title">Capas 3D</div>
+
+    <div class="layer-row">
+      <div class="layer-info">
+        <span class="legend-poly" style="background:#7f9fb3;"></span>
+        <div>
+          <div class="layer-name">Modelo con apariencia</div>
+          <div class="layer-desc">3D Tiles original</div>
+        </div>
+      </div>
+      <label class="switch"><input id="toggleTextured" type="checkbox" checked /><span class="slider"></span></label>
+    </div>
+
+    <div class="layer-row">
+      <div class="layer-info">
+        <span class="legend-poly" style="background:#d8e2e3;"></span>
+        <div>
+          <div class="layer-name">Modelo gris</div>
+          <div class="layer-desc">3D Tiles sin textura</div>
+        </div>
+      </div>
+      <label class="switch"><input id="togglePlain" type="checkbox" /><span class="slider"></span></label>
+    </div>
+
+    <div class="section-title">Capas de análisis</div>
+    <div id="analysisControls"></div>
+
+    <div class="button-row">
+      <button onclick="zoomToActiveTiles()">Zoom al modelo</button>
+      <button onclick="flyToHelsinki()">Volver a la zona</button>
+      <button onclick="hidePopup()">Cerrar popup</button>
+    </div>
+  </div>
+
+  <div id="popup">
+    <h2 id="popupTitle">Elemento</h2>
+    <div id="popupContent"></div>
+    <button onclick="hidePopup()">Cerrar</button>
+  </div>
+
+  <script>
+    const TILESET_URL = "./helsinki_tiles/tileset.json";
+    const GEOSERVER_BASE = "http://localhost:8080/geoserver/helsinki/ows";
+
+    function wfsUrl(typeName) {
+      return (
+        GEOSERVER_BASE +
+        "?service=WFS" +
+        "&version=1.0.0" +
+        "&request=GetFeature" +
+        "&typeName=helsinki:" + typeName +
+        "&outputFormat=application/json"
+      );
+    }
+
+    const viewer = new Cesium.Viewer("cesiumContainer", {
+      baseLayer: false,
+      baseLayerPicker: false,
+      terrainProvider: new Cesium.EllipsoidTerrainProvider(),
+      timeline: false,
+      animation: false,
+      geocoder: false,
+      homeButton: true,
+      sceneModePicker: true,
+      navigationHelpButton: true,
+      fullscreenButton: true,
+      infoBox: false,
+      selectionIndicator: true
+    });
+
+    viewer.scene.globe.depthTestAgainstTerrain = false;
+    viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#101820");
+    viewer.scene.backgroundColor = Cesium.Color.fromCssColorString("#05070a");
+
+    let texturedTileset = null;
+    let plainTileset = null;
+    const loadedLayers = {};
+
+    const statusDot = document.getElementById("statusDot");
+    const statusText = document.getElementById("statusText");
+    const popup = document.getElementById("popup");
+    const popupTitle = document.getElementById("popupTitle");
+    const popupContent = document.getElementById("popupContent");
+    const controls = document.getElementById("analysisControls");
+
+    const groups = [
+      {
+        title: "Espacios verdes + alturas",
+        layers: [
+          {
+            id: "green",
+            typeName: "green_areas_near_model_mat",
+            title: "Espacios verdes cercanos",
+            desc: "Espacios verdes a menos de 500 m del modelo",
+            color: "#22c55e",
+            defaultShow: true,
+            geometry: "polygon",
+            styleBy: "fixed",
+            question: "¿Qué espacios verdes están cerca de la zona del modelo 3D?"
+          },
+          {
+            id: "heightPoints",
+            typeName: "building_height_points_mat",
+            title: "Edificios por altura",
+            desc: "Puntos clasificados por altura",
+            color: "#3498db",
+            defaultShow: true,
+            geometry: "point",
+            styleBy: "height_category",
+            question: "¿Qué edificios hay y qué altura estimada tienen?"
+          },
+          {
+            id: "nearGreen",
+            typeName: "buildings_near_green_points_mat",
+            title: "Distancia al verde",
+            desc: "Cada edificio con su verde más cercano",
+            color: "#38bdf8",
+            defaultShow: false,
+            geometry: "point",
+            styleBy: "height_category",
+            question: "¿Cuál es el espacio verde más cercano a cada edificio?"
+          },
+          {
+            id: "highNearGreen",
+            typeName: "high_buildings_near_green_points",
+            title: "Altos cerca de verde",
+            desc: "Altura ≥ 25 m y distancia ≤ 100 m",
+            color: "#ef4444",
+            defaultShow: true,
+            geometry: "point",
+            styleBy: "height_category",
+            question: "¿Cuántos edificios altos están próximos a espacios verdes?"
+          }
+        ]
+      },
+      {
+        title: "Urban Rules Analysis",
+        layers: [
+          {
+            id: "combined",
+            typeName: "combined_urban_rules_mat",
+            title: "Resultado combinado",
+            desc: "Edificios con más alertas urbanas",
+            color: "#ef4444",
+            defaultShow: false,
+            geometry: "polygon",
+            styleBy: "risk_level",
+            question: "¿Qué edificios concentran más alertas urbanas?"
+          },
+          {
+            id: "urbanBase",
+            typeName: "urban_building_base_mat",
+            title: "Edificios base",
+            desc: "Huella, altura y área",
+            color: "#38bdf8",
+            defaultShow: false,
+            geometry: "polygon",
+            styleBy: "height_category",
+            question: "¿Qué edificios hay y qué altura tienen?"
+          },
+          {
+            id: "spacing",
+            typeName: "rule1_building_spacing_mat",
+            title: "Separación entre edificios",
+            desc: "Líneas entre edificios a menos de 6 m",
+            color: "#f97316",
+            defaultShow: false,
+            geometry: "line",
+            styleBy: "status",
+            question: "¿Qué edificios están demasiado cerca entre sí?"
+          },
+          {
+            id: "heightRatio",
+            typeName: "rule2_height_ratio_mat",
+            title: "Altura / ancho",
+            desc: "Relación altura vs ancho mínimo",
+            color: "#a855f7",
+            defaultShow: false,
+            geometry: "polygon",
+            styleBy: "status",
+            question: "¿Qué edificios son altos respecto a su ancho?"
+          },
+          {
+            id: "coverage",
+            typeName: "rule3_coverage_mat",
+            title: "Cobertura de suelo",
+            desc: "Huella vs área aproximada",
+            color: "#eab308",
+            defaultShow: false,
+            geometry: "polygon",
+            styleBy: "status",
+            question: "¿Qué edificios ocupan demasiada superficie?"
+          },
+          {
+            id: "minHeight",
+            typeName: "rule4_min_height_mat",
+            title: "Altura mínima",
+            desc: "Edificios demasiado bajos",
+            color: "#06b6d4",
+            defaultShow: false,
+            geometry: "polygon",
+            styleBy: "status",
+            question: "¿Hay edificios demasiado bajos?"
+          },
+          {
+            id: "maxHeight",
+            typeName: "rule5_max_height_mat",
+            title: "Altura máxima",
+            desc: "Edificios sobre el umbral alto",
+            color: "#dc2626",
+            defaultShow: false,
+            geometry: "polygon",
+            styleBy: "status",
+            question: "¿Qué edificios superan una altura máxima?"
+          },
+          {
+            id: "far",
+            typeName: "rule6_far_mat",
+            title: "Densidad / FAR",
+            desc: "Densidad estimada por pisos",
+            color: "#22c55e",
+            defaultShow: false,
+            geometry: "polygon",
+            styleBy: "status",
+            question: "¿Qué edificios tienen mayor densidad estimada?"
+          }
+        ]
+      }
+    ];
+
+    function setStatus(message, type = "loading") {
+      statusText.textContent = message;
+      statusDot.className = "dot";
+      if (type === "ok") statusDot.classList.add("ok");
+      if (type === "error") statusDot.classList.add("error");
+    }
+
+    function getCssColorForStatus(status) {
+      if (status === "FAIL" || status === "HIGH") return "#ef4444";
+      if (status === "WARN" || status === "MEDIUM") return "#f97316";
+      if (status === "LOW") return "#eab308";
+      if (status === "OK") return "#22c55e";
+      return "#38bdf8";
+    }
+
+    function getCssColorForHeight(category) {
+      if (category === "muy_alto") return "#e74c3c";
+      if (category === "alto") return "#f39c12";
+      if (category === "medio") return "#3498db";
+      if (category === "bajo") return "#95a5a6";
+      return "#38bdf8";
+    }
+
+    function getProperty(entity, name) {
+      return entity.properties && entity.properties[name]
+        ? entity.properties[name].getValue()
+        : undefined;
+    }
+
+    function formatValue(value, fallback = "-") {
+      if (value === undefined || value === null || value === "") return fallback;
+      return value;
+    }
+
+    function createLayerControls() {
+      controls.innerHTML = "";
+
+      groups.forEach((group) => {
+        const groupTitle = document.createElement("div");
+        groupTitle.className = "group-title";
+        groupTitle.textContent = group.title;
+        controls.appendChild(groupTitle);
+
+        group.layers.forEach((config) => {
+          const row = document.createElement("div");
+          row.className = "layer-row";
+
+          let markerClass = "legend-poly";
+          if (config.geometry === "line") markerClass = "legend-line";
+          if (config.geometry === "point") markerClass = "legend-point";
+
+          row.innerHTML = `
+            <div class="layer-info">
+              <span class="${markerClass}" style="background:${config.color};"></span>
+              <div>
+                <div class="layer-name">${config.title}</div>
+                <div class="layer-desc">${config.desc}</div>
+              </div>
+            </div>
+            <label class="switch">
+              <input id="toggle-${config.id}" type="checkbox" ${config.defaultShow ? "checked" : ""} />
+              <span class="slider"></span>
+            </label>
+          `;
+
+          controls.appendChild(row);
+        });
+      });
+    }
+
+    function allLayerConfigs() {
+      return groups.flatMap((group) => group.layers);
+    }
+
+    async function loadTilesets() {
+      texturedTileset = await Cesium.Cesium3DTileset.fromUrl(TILESET_URL, {
+        maximumScreenSpaceError: 1
+      });
+
+      plainTileset = await Cesium.Cesium3DTileset.fromUrl(TILESET_URL, {
+        maximumScreenSpaceError: 1
+      });
+
+      plainTileset.style = new Cesium.Cesium3DTileStyle({
+        color: "color('#d8e2e3')"
+      });
+
+      texturedTileset.show = true;
+      plainTileset.show = false;
+
+      viewer.scene.primitives.add(texturedTileset);
+      viewer.scene.primitives.add(plainTileset);
+
+      await viewer.zoomTo(texturedTileset);
+    }
+
+    async function loadAnalysisLayer(config) {
+      const url = wfsUrl(config.typeName);
+
+      console.group(`Cargando capa WFS: ${config.title}`);
+      console.log("ID:", config.id);
+      console.log("typeName:", config.typeName);
+      console.log("URL:", url);
+
+      let geojson;
+
+      try {
+        const response = await fetch(url);
+
+        console.log("HTTP status:", response.status, response.statusText);
+        console.log("Content-Type:", response.headers.get("content-type"));
+
+        const text = await response.text();
+
+        if (!response.ok) {
+          console.error("Respuesta HTTP incorrecta:", response.status, response.statusText);
+          console.error("Respuesta completa:", text);
+          throw new Error(`Falló ${config.typeName}: HTTP ${response.status}`);
+        }
+
+        if (text.trim().startsWith("<")) {
+          console.error("GeoServer devolvió XML en vez de JSON.");
+          console.error("Esto normalmente significa que la capa no existe, no está publicada o el datastore está mal.");
+          console.error("Respuesta XML:", text);
+          throw new Error(`Falló ${config.typeName}: GeoServer devolvió XML`);
+        }
+
+        geojson = JSON.parse(text);
+
+        console.log("GeoJSON OK");
+        console.log("Features:", geojson.features ? geojson.features.length : 0);
+      } catch (error) {
+        console.error(`ERROR cargando capa: ${config.typeName}`);
+        console.error(error);
+        console.groupEnd();
+
+        throw {
+          layerTitle: config.title,
+          typeName: config.typeName,
+          url,
+          originalError: error
+        };
+      }
+
+      const ds = await Cesium.GeoJsonDataSource.load(geojson, {
+        clampToGround: false
+      });
+
+      ds.show = config.defaultShow;
+      viewer.dataSources.add(ds);
+
+      ds.entities.values.forEach((entity) => {
+        entity.analysisType = config.id;
+        entity.layerTitle = config.title;
+        entity.question = config.question;
+
+        let colorCss = config.color;
+
+        if (config.styleBy === "status") {
+          colorCss = getCssColorForStatus(getProperty(entity, "status"));
+        }
+
+        if (config.styleBy === "risk_level") {
+          colorCss = getCssColorForStatus(getProperty(entity, "risk_level"));
+        }
+
+        if (config.styleBy === "height_category") {
+          colorCss = getCssColorForHeight(getProperty(entity, "height_category"));
+        }
+
+        const color = Cesium.Color.fromCssColorString(colorCss);
+
+        if (entity.polygon) {
+          entity.polygon.material = color.withAlpha(config.id === "green" ? 0.35 : 0.42);
+          entity.polygon.outline = true;
+          entity.polygon.outlineColor = color.withAlpha(0.95);
+          entity.polygon.height = config.id === "green" ? 0.5 : 2;
+        }
+
+        if (entity.polyline) {
+          entity.polyline.material = color;
+          entity.polyline.width = 4;
+          entity.polyline.clampToGround = false;
+        }
+
+        if (entity.point) {
+          entity.point.color = color;
+          entity.point.pixelSize = config.id === "highNearGreen" ? 13 : 10;
+          entity.point.outlineColor = Cesium.Color.WHITE;
+          entity.point.outlineWidth = 2;
+          entity.point.disableDepthTestDistance = Number.POSITIVE_INFINITY;
+        }
+      });
+
+      loadedLayers[config.id] = ds;
+
+      console.log("Capa cargada correctamente:", config.typeName);
+      console.groupEnd();
+    }
+
+    async function loadAll() {
+      try {
+        setStatus("Cargando 3D Tiles...", "loading");
+
+        createLayerControls();
+        await loadTilesets();
+
+        setStatus("Cargando capas WFS...", "loading");
+
+        for (const config of allLayerConfigs()) {
+          try {
+            await loadAnalysisLayer(config);
+
+            const toggle = document.getElementById(`toggle-${config.id}`);
+            toggle.addEventListener("change", (event) => {
+              if (loadedLayers[config.id]) {
+                loadedLayers[config.id].show = event.target.checked;
+              }
+            });
+          } catch (layerError) {
+            console.error("======================================");
+            console.error("CAPA QUE FALLÓ");
+            console.error("Título:", layerError.layerTitle);
+            console.error("typeName:", layerError.typeName);
+            console.error("URL:", layerError.url);
+            console.error("Error original:", layerError.originalError);
+            console.error("======================================");
+
+            setStatus(`Error cargando: ${layerError.typeName}`, "error");
+
+            throw layerError;
+          }
+        }
+
+        setStatus("Datos cargados correctamente", "ok");
+      } catch (error) {
+        console.error("Error general cargando datos:", error);
+      }
+    }
+
+    function setTexturedVisible(visible) {
+      if (texturedTileset) texturedTileset.show = visible;
+    }
+
+    function setPlainVisible(visible) {
+      if (plainTileset) plainTileset.show = visible;
+    }
+
+    document.getElementById("toggleTextured").addEventListener("change", (event) => {
+      setTexturedVisible(event.target.checked);
+    });
+
+    document.getElementById("togglePlain").addEventListener("change", (event) => {
+      setPlainVisible(event.target.checked);
+    });
+
+    async function zoomToActiveTiles() {
+      if (texturedTileset && texturedTileset.show) {
+        await viewer.zoomTo(texturedTileset);
+        return;
+      }
+
+      if (plainTileset && plainTileset.show) {
+        await viewer.zoomTo(plainTileset);
+        return;
+      }
+
+      if (texturedTileset) {
+        await viewer.zoomTo(texturedTileset);
+      }
+    }
+
+    function flyToHelsinki() {
+      viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(24.94656, 60.16545, 900),
+        orientation: {
+          heading: Cesium.Math.toRadians(0),
+          pitch: Cesium.Math.toRadians(-45),
+          roll: 0
+        },
+        duration: 1.5
+      });
+    }
+
+    function hidePopup() {
+      popup.style.display = "none";
+    }
+
+    function showPopup(title, html) {
+      popupTitle.textContent = title;
+      popupContent.innerHTML = html;
+      popup.style.display = "block";
+    }
+
+    const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+
+    handler.setInputAction((movement) => {
+      const picked = viewer.scene.pick(movement.position);
+
+      if (!Cesium.defined(picked) || !picked.id) {
+        hidePopup();
+        return;
+      }
+
+      const entity = picked.id;
+
+      if (!entity.analysisType) {
+        hidePopup();
+        return;
+      }
+
+      const layerTitle = entity.layerTitle || "Capa de análisis";
+      const question = entity.question || "-";
+
+      const html = `
+        <p><b>Pregunta:</b> ${question}</p>
+        <p><b>Building ID:</b> ${formatValue(getProperty(entity, "building_gml_id") || getProperty(entity, "source_id") || getProperty(entity, "building_a_gml_id"))}</p>
+        <p><b>Altura:</b> ${formatValue(getProperty(entity, "height_m"))} m</p>
+        <p><b>Categoría:</b> ${formatValue(getProperty(entity, "height_category"))}</p>
+        <p><b>Green ID:</b> ${formatValue(getProperty(entity, "green_id") || getProperty(entity, "id"))}</p>
+        <p><b>Distancia al verde:</b> ${formatValue(getProperty(entity, "distance_to_green_m"))} m</p>
+        <p><b>Distancia entre edificios:</b> ${formatValue(getProperty(entity, "distance_m") || getProperty(entity, "nearest_building_m"))} m</p>
+        <p><b>Status:</b> ${formatValue(getProperty(entity, "status"))}</p>
+        <p><b>Risk level:</b> ${formatValue(getProperty(entity, "risk_level"))}</p>
+        <p><b>Risk score:</b> ${formatValue(getProperty(entity, "risk_score"))}</p>
+        <p><b>Altura/ancho:</b> ${formatValue(getProperty(entity, "height_to_width_ratio"))}</p>
+        <p><b>Cobertura:</b> ${formatValue(getProperty(entity, "coverage_pct"))}%</p>
+        <p><b>FAR:</b> ${formatValue(getProperty(entity, "far_ratio"))}</p>
+      `;
+
+      showPopup(layerTitle, html);
+    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+    loadAll();
+  </script>
+</body>
+
+</html>

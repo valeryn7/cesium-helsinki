@@ -1,0 +1,81 @@
+site_name: "citydb-3dtiler"
+repo_name: "tum-gis/citydb-3dtiler"
+repo_url: "https://github.com/tum-gis/citydb-3dtiler"
+site_url: "https://tum-gis.github.io/citydb-3dtiler"
+edit_uri: "tree/main/docs"
+# exclude_docs: |
+#   /html_documents/
+#   /notebooks/
+nav:
+  - Home: index.md
+  - "How to use with Docker?": how_to_use_w_docker.md
+  - "How to use with VEnv?": how_to_use_w_venv.md
+  - "All Commands & Samples": all_commands_samples.md
+  - "Tips for Docker usage" : tips_for_docker_usage.md
+  - "Test Procedures & Tilesets" : test_procedures.md
+  - "Documentation for Developers" : developer_docs.md
+theme: 
+  name: material
+  logo: ./images/citydb_logo.png
+  favicon: ./images/citydb_logo.png
+  admonition:
+    note: octicons/tag-16
+    abstract: octicons/checklist-16
+    info: octicons/info-16
+    tip: octicons/squirrel-16
+    success: octicons/check-16
+    question: octicons/question-16
+    warning: octicons/alert-16
+    failure: octicons/x-circle-16
+    danger: octicons/zap-16
+    bug: octicons/bug-16
+    example: octicons/beaker-16
+    quote: octicons/quote-16
+  palette: 
+    # Palette toggle for light mode
+    - scheme: default
+      primary: green
+      accent: cyan
+      media: "(prefers-color-scheme: light)"
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: green
+      accent: cyan
+      media: "(prefers-color-scheme: dark)"
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - content.tabs.link
+    - content.code.copy
+    - content.code.select
+extra_css:
+  - extra_style.css
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - attr_list
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tasklist:
+      clickable_checkbox: true
+  - pymdownx.tabbed:
+      alternate_style: true
+plugins:
+  - plantuml:
+      puml_url: https://www.plantuml.com/plantuml/
+
+

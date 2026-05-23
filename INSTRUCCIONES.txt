@@ -1,0 +1,446 @@
+ORDEN RECOMENDADO PARA LEVANTAR TODO
+====================================
+
+1. Asegurarse de que PostgreSQL esté corriendo.
+2. Desde la carpeta cesium-helsinki ejecutar:
+
+   ./start_server.sh
+
+3. Abrir:
+
+   http://localhost:8001
+
+Si falta helsinki_tiles/tileset.json, ejecutar antes:
+
+   ./generate_tiles.sh
+
+
+PROYECTO: Helsinki 3D Analysis
+================================
+
+Este proyecto visualiza en CesiumJS un modelo 3D de Helsinki generado como 3D Tiles y superpone capas de análisis publicadas desde GeoServer.
+
+La carpeta ya incluye:
+- index.html
+- helsinki.sql
+- helsinki_tiles/
+- citydb-3dtiler-0.9.2/
+- geoserver-2.28.3-bin/
+- generate_tiles.sh
+- start_server.sh
+
+
+FORMA RÁPIDA DE LEVANTAR TODO
+=============================
+
+Desde la carpeta del proyecto ejecutar:
+
+./start_server.sh
+
+Ese comando hace automáticamente:
+
+1. Verifica si GeoServer ya está corriendo.
+2. Si GeoServer no está corriendo, lo levanta desde:
+
+   geoserver-2.28.3-bin/
+
+3. Verifica que exista:
+
+   helsinki_tiles/tileset.json
+
+4. Levanta el visor Cesium en:
+
+   http://localhost:8001
+
+Después abrir en el navegador:
+
+http://localhost:8001
+
+
+CÓMO CERRAR
+===========
+
+Para cerrar el servidor Cesium:
+
+Ctrl + C
+
+GeoServer queda corriendo en segundo plano.
+
+Para cerrar GeoServer manualmente:
+
+pkill -f start.jar
+
+Si eso no funciona:
+
+pkill -f geoserver
+
+
+ESTRUCTURA DEL PROYECTO
+=======================
+
+cesium-helsinki/
+  INSTRUCCIONES.txt
+  index.html
+  helsinki.sql
+  generate_tiles.sh
+  start_server.sh
+  geoserver-2.28.3-bin/
+  citydb-3dtiler-0.9.2/
+  helsinki_tiles/
+
+
+QUÉ HACE CADA ARCHIVO O CARPETA
+===============================
+
+index.html
+----------
+
+Es el visor web con CesiumJS.
+
+Carga:
+- El modelo 3D desde helsinki_tiles/tileset.json.
+- Las capas WFS/GeoJSON desde GeoServer.
+- El panel lateral para prender y apagar capas.
+
+Capas visibles:
+- Edificios 3D.
+- Espacios verdes.
+- Edificios por altura.
+- Edificios altos cerca de espacios verdes.
+
+
+helsinki_tiles/
+---------------
+
+Contiene los 3D Tiles que consume Cesium.
+
+Debe tener:
+
+helsinki_tiles/
+  tileset.json
+  content/
+  subtrees/
+
+Si no existe tileset.json, hay que regenerar los tiles con:
+
+./generate_tiles.sh
+
+
+citydb-3dtiler-0.9.2/
+---------------------
+
+Herramienta usada para generar los 3D Tiles desde 3DCityDB.
+
+Se conecta a PostgreSQL/PostGIS, lee el modelo 3D y genera los tiles usando pg2b3dm.
+
+
+geoserver-2.28.3-bin/
+---------------------
+
+GeoServer incluido dentro del proyecto.
+
+Se usa para publicar las capas de análisis desde PostGIS como WFS/GeoJSON.
+
+El script start_server.sh lo levanta automáticamente si no está corriendo.
+
+
+generate_tiles.sh
+-----------------
+
+Regenera los 3D Tiles.
+
+Ejecutar solo si:
+- Se modificó el modelo 3D en la base.
+- No existe helsinki_tiles/tileset.json.
+- Se quiere generar nuevamente la carpeta helsinki_tiles.
+
+Comando:
+
+./generate_tiles.sh
+
+Este script:
+1. Entra a citydb-3dtiler-0.9.2.
+2. Se conecta a la base citydb_test.
+3. Lee el schema citydb.
+4. Ejecuta citydb-3dtiler.
+5. Usa pg2b3dm.
+6. Copia el resultado a helsinki_tiles.
+
+
+start_server.sh
+---------------
+
+Levanta el proyecto completo.
+
+Comando:
+
+./start_server.sh
+
+Este script:
+1. Levanta GeoServer si no está activo.
+2. Verifica que existan los 3D Tiles.
+3. Levanta un servidor local para Cesium en el puerto 8001.
+
+
+BASE DE DATOS
+=============
+
+El proyecto espera que PostgreSQL/PostGIS esté corriendo.
+
+Base:
+
+citydb_test
+
+Schemas esperados:
+
+citydb
+analysis
+
+El schema citydb contiene el modelo CityGML importado en 3DCityDB.
+El schema analysis contiene las capas de análisis creadas con SQL/PostGIS.
+
+
+CAPAS DE ANÁLISIS NECESARIAS
+============================
+
+En el schema analysis deben existir:
+
+1. analysis.building_height_points_mat
+
+   Crea un punto por edificio.
+   Calcula la altura estimada con:
+
+   Z máxima - Z mínima
+
+   También clasifica los edificios en:
+
+   bajo
+   medio
+   alto
+   muy_alto
+
+
+2. analysis.green_areas_near_model_mat
+
+   Contiene los espacios verdes cercanos a la zona del modelo 3D.
+
+
+3. analysis.buildings_near_green_points_mat
+
+   Calcula la distancia de cada edificio al espacio verde más cercano.
+
+
+4. analysis.high_buildings_near_green_points
+
+   Contiene los edificios altos cerca de espacios verdes.
+
+   Criterio:
+   - altura >= 25 m
+   - distancia al espacio verde <= 100 m
+
+
+Si estas capas no existen, ejecutar el archivo:
+
+helsinki.sql
+
+
+GEOSERVER
+=========
+
+GeoServer debe quedar disponible en:
+
+http://localhost:8080/geoserver
+
+Workspace usado:
+
+helsinki
+
+Endpoint WFS:
+
+http://localhost:8080/geoserver/helsinki/ows
+
+Capas que usa el index.html:
+
+helsinki:green_areas_near_model_mat
+helsinki:building_height_points_mat
+helsinki:high_buildings_near_green_points
+
+
+URLs WFS PARA PROBAR
+====================
+
+Espacios verdes:
+
+http://localhost:8080/geoserver/helsinki/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=helsinki:green_areas_near_model_mat&outputFormat=application/json
+
+Edificios por altura:
+
+http://localhost:8080/geoserver/helsinki/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=helsinki:building_height_points_mat&outputFormat=application/json
+
+Edificios altos cerca de verde:
+
+http://localhost:8080/geoserver/helsinki/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=helsinki:high_buildings_near_green_points&outputFormat=application/json
+
+
+CORS EN GEOSERVER
+=================
+
+Como Cesium corre en:
+
+http://localhost:8001
+
+y GeoServer corre en:
+
+http://localhost:8080
+
+se necesita CORS habilitado.
+
+Ya debería estar configurado en:
+
+geoserver-2.28.3-bin/webapps/geoserver/WEB-INF/web.xml
+
+Debe estar activo el filtro de Jetty:
+
+<filter>
+   <filter-name>cross-origin</filter-name>
+   <filter-class>org.eclipse.jetty.servlets.CrossOriginFilter</filter-class>
+   <init-param>
+     <param-name>chainPreflight</param-name>
+     <param-value>false</param-value>
+   </init-param>
+   <init-param>
+     <param-name>allowedOrigins</param-name>
+     <param-value>*</param-value>
+   </init-param>
+   <init-param>
+     <param-name>allowedMethods</param-name>
+     <param-value>GET,POST,PUT,DELETE,HEAD,OPTIONS</param-value>
+   </init-param>
+   <init-param>
+     <param-name>allowedHeaders</param-name>
+     <param-value>*</param-value>
+   </init-param>
+</filter>
+
+Y también:
+
+<filter-mapping>
+    <filter-name>cross-origin</filter-name>
+    <url-pattern>/*</url-pattern>
+</filter-mapping>
+
+Importante:
+Si se usa este GeoServer incluido, no usar el filtro de Tomcat.
+
+
+QUÉ HACE EL INDEX.HTML
+======================
+
+El index.html carga la librería CesiumJS desde CDN.
+
+Luego crea un visor 3D dentro de:
+
+<div id="cesiumContainer"></div>
+
+Carga los 3D Tiles desde:
+
+./helsinki_tiles/tileset.json
+
+Con eso se visualizan los edificios 3D.
+
+Además consume capas WFS desde GeoServer en formato GeoJSON:
+
+- green_areas_near_model_mat
+- building_height_points_mat
+- high_buildings_near_green_points
+
+Estas capas se muestran sobre el modelo 3D.
+
+
+COLORES EN EL VISOR
+===================
+
+Edificios por altura:
+
+bajo      = gris
+medio     = azul
+alto      = naranja
+muy_alto  = rojo
+
+Espacios verdes:
+
+verde transparente
+
+Edificios altos cerca de verde:
+
+rojo destacado
+
+
+RESULTADO DEL ANÁLISIS
+======================
+
+En la zona analizada hay 200 edificios del modelo 3D.
+
+Se identificaron 51 edificios altos ubicados a 100 metros o menos de un espacio verde.
+
+Resumen:
+
+- Edificios altos cerca de verde: 51
+- Altura promedio: 29.21 m
+- Distancia promedio al espacio verde: 54.17 m
+
+
+PROBLEMAS COMUNES
+=================
+
+1. No aparece el modelo 3D
+
+Revisar que exista:
+
+helsinki_tiles/tileset.json
+
+y que también estén:
+
+helsinki_tiles/content/
+helsinki_tiles/subtrees/
+
+Si no existen, ejecutar:
+
+./generate_tiles.sh
+
+
+2. No aparecen las capas verdes o puntos
+
+Primero verificar que GeoServer esté activo:
+
+http://localhost:8080/geoserver
+
+Después probar las URLs WFS en el navegador.
+
+Si no devuelven JSON, revisar:
+- que GeoServer esté levantado
+- que exista el workspace helsinki
+- que las capas estén publicadas
+- que exista el schema analysis en la base
+
+
+3. Error CORS
+
+Si aparece:
+
+No 'Access-Control-Allow-Origin' header
+
+Revisar la configuración CORS en GeoServer.
+
+
+4. Error Cesium Ion 401
+
+Si aparece:
+
+Invalid access token
+
+Asegurarse de que en index.html el viewer tenga:
+
+baseLayer: false
+baseLayerPicker: false
+terrainProvider: new Cesium.EllipsoidTerrainProvider()

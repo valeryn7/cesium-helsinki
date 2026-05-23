@@ -1,0 +1,22 @@
+# Ignore Folders
+.*
+env
+sources
+site
+__pycache__
+# Ignore Files
+*.*~
+shared/*
+shared/**/*
+tiler_app/*
+citydb-3dtiler.sublime-project
+citydb-3dtiler.sublime-workspace
+# Do NOT Ignore Folders
+# Do NOT Ignore Files
+!tiler_app/about_tiler_app.md
+!.gitignore
+!shared/.gitkeep
+!.github/workflows/build-docker-image.yml
+!.github/workflows/release.yml
+
+

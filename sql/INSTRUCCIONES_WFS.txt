@@ -1,0 +1,182 @@
+Paso 1: Abrir QGIS y crear conexión WFS
+
+En QGIS andá a:
+
+Layer → Add Layer → Add WFS Layer...
+
+o en español puede aparecer como:
+
+Capa → Añadir capa → Añadir capa WFS/OGC API - Features...
+
+Después tocá:
+
+New / Nueva
+
+Completá así:
+
+Name / Nombre:
+Helsinki WFS
+
+URL:
+https://kartta.hel.fi/ws/geoserver/avoindata/wfs?request=getCapabilities
+
+Guardás y tocás:
+
+Connect / Conectar
+Paso 2: Buscar la capa de espacios verdes
+
+Cuando cargue la lista de capas, en el buscador escribí:
+
+viher
+
+Buscá una capa que se llame parecido a:
+
+YLRE_Viheralue_alue
+
+o que contenga:
+
+Viheralue
+
+Esa es la capa de áreas verdes / espacios verdes.
+
+Seleccionás esa capa y tocás:
+
+Add / Añadir
+
+Esperá a que aparezca en el mapa.
+
+Paso 3: Verificar que la capa cargó bien
+
+En el panel de capas deberías ver algo como:
+
+YLRE_Viheralue_alue
+
+Hacé zoom a Helsinki y verificá que se vean polígonos verdes o áreas.
+
+También podés hacer:
+
+Click derecho sobre la capa → Open Attribute Table
+
+para confirmar que tiene datos.
+
+Paso 4: Exportar la capa WFS a PostGIS
+
+Ahora hay que guardar esa capa dentro de tu base citydb_test.
+
+Hacé:
+
+Click derecho sobre la capa YLRE_Viheralue_alue
+→ Export
+→ Save Features As...
+
+Configuralo así:
+
+Format:
+PostgreSQL
+
+En Database, elegí tu conexión a PostgreSQL:
+
+citydb_test
+
+Si no tenés la conexión creada, tocá crear conexión y usá:
+
+Host: localhost
+Port: 5432
+Database: citydb_test
+User: valerynater
+Password: vacío si no tenés
+
+Después completá:
+
+Schema:
+analysis
+
+Table:
+green_areas
+
+Geometry column:
+geom
+
+CRS:
+EPSG:4326 - WGS 84
+
+Marcá, si aparece:
+
+Add saved file to map
+
+y guardá.
+
+Paso 5: Verificar que quedó en PostGIS
+
+Andá a:
+
+Database → DB Manager
+
+Abrí:
+
+PostgreSQL → citydb_test → analysis
+
+Ahí deberías ver:
+
+green_areas
+
+Abrí SQL Window y ejecutá:
+
+SELECT COUNT(*)
+FROM analysis.green_areas;
+
+Si te devuelve un número mayor que 0, quedó bien.
+
+Schema: analysis
+Table: green_areas
+
+Primary key: id
+Geometry column: geom
+Source SRID: EPSG:3879
+Target SRID: EPSG:4326
+Encoding: Automatic
+
+[x] Replace destination table (if exists)
+[x] Convert field names to lowercase
+[x] Create spatial index
+
+Paso 6: Verificar geometría y SRID
+
+En SQL Window ejecutá:
+
+SELECT
+  GeometryType(geom) AS geometry_type,
+  ST_SRID(geom) AS srid,
+  COUNT(*) AS total
+FROM analysis.green_areas
+GROUP BY GeometryType(geom), ST_SRID(geom);
+
+Lo ideal es que te dé algo como:
+
+MULTIPOLYGON | 4326 | ...
+
+o:
+
+POLYGON | 4326 | ...
+
+Si está en 4326, perfecto.
+
+Paso 7: Ejecutar tu SQL de análisis
+
+Cuando ya existe:
+
+analysis.green_areas
+
+recién ahí ejecutás tu SQL completo:
+
+sql/helsinski.sql
+
+Desde terminal:
+
+psql -d citydb_test -f sql/helsinski.sql
+
+O desde QGIS:
+
+Database → DB Manager → SQL Window
+
+Pegás el SQL completo y ejecutás.
