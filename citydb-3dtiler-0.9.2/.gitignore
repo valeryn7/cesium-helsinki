@@ -14,7 +14,14 @@ citydb-3dtiler.sublime-workspace
 # Do NOT Ignore Folders
 # Do NOT Ignore Files
 !tiler_app/about_tiler_app.md
+!tiler_app/pg2b3dm
 !.gitignore
+!shared/advise.yml
+!shared/tileset.json
+!shared/content/
+!shared/content/**
+!shared/subtrees/
+!shared/subtrees/**
 !shared/.gitkeep
 !.github/workflows/build-docker-image.yml
 !.github/workflows/release.yml
