@@ -1,5 +1,5 @@
 <featureType>
-  <id>FeatureTypeInfoImpl-1c5a278b:19e41a412e3:-7ffd</id>
+  <id>FeatureTypeInfoImpl--486c3543:19e618c610c:-7eef</id>
   <name>building_height_points_mat</name>
   <nativeName>building_height_points_mat</nativeName>
   <namespace>
@@ -21,31 +21,25 @@
   AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</nativeCRS>
   <srs>EPSG:4326</srs>
   <nativeBoundingBox>
-    <minx>24.942184448242188</minx>
-    <maxx>24.951030731201172</maxx>
-    <miny>60.162841796875</miny>
-    <maxy>60.16816711425781</maxy>
+    <minx>24.941926956176758</minx>
+    <maxx>24.96361541748047</maxx>
+    <miny>60.15324401855469</miny>
+    <maxy>60.168006896972656</maxy>
     <crs>EPSG:4326</crs>
   </nativeBoundingBox>
   <latLonBoundingBox>
-    <minx>24.942184448242188</minx>
-    <maxx>24.951030731201172</maxx>
-    <miny>60.162841796875</miny>
-    <maxy>60.16816711425781</maxy>
+    <minx>24.941926956176758</minx>
+    <maxx>24.96361541748047</maxx>
+    <miny>60.15324401855469</miny>
+    <maxy>60.168006896972656</maxy>
     <crs>EPSG:4326</crs>
   </latLonBoundingBox>
   <projectionPolicy>FORCE_DECLARED</projectionPolicy>
   <enabled>true</enabled>
-  <metadata>
-    <entry key="cachingEnabled">false</entry>
-  </metadata>
   <store class="dataStore">
-    <id>DataStoreInfoImpl-1c5a278b:19e41a412e3:-8000</id>
+    <id>DataStoreInfoImpl--486c3543:19e618c610c:-7ef2</id>
   </store>
   <serviceConfiguration>false</serviceConfiguration>
-  <simpleConversionEnabled>false</simpleConversionEnabled>
-  <internationalTitle/>
-  <internationalAbstract/>
   <maxFeatures>0</maxFeatures>
   <numDecimals>0</numDecimals>
   <padWithZeros>false</padWithZeros>

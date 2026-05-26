@@ -1,5 +1,5 @@
 <featureType>
-  <id>FeatureTypeInfoImpl-1c5a278b:19e41a412e3:-7ffb</id>
+  <id>FeatureTypeInfoImpl--486c3543:19e618c610c:-7eeb</id>
   <name>high_buildings_near_green_points</name>
   <nativeName>high_buildings_near_green_points</nativeName>
   <namespace>
@@ -21,31 +21,25 @@
   AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</nativeCRS>
   <srs>EPSG:4326</srs>
   <nativeBoundingBox>
-    <minx>24.942355519711207</minx>
-    <maxx>24.951029202145193</maxx>
-    <miny>60.16284523241299</miny>
-    <maxy>60.168163889632936</maxy>
+    <minx>24.942292908917885</minx>
+    <maxx>24.9629331875955</maxx>
+    <miny>60.15583564815036</miny>
+    <maxy>60.167931949734935</maxy>
     <crs>EPSG:4326</crs>
   </nativeBoundingBox>
   <latLonBoundingBox>
-    <minx>24.942355519711207</minx>
-    <maxx>24.951029202145193</maxx>
-    <miny>60.16284523241299</miny>
-    <maxy>60.168163889632936</maxy>
+    <minx>24.942292908917885</minx>
+    <maxx>24.9629331875955</maxx>
+    <miny>60.15583564815036</miny>
+    <maxy>60.167931949734935</maxy>
     <crs>EPSG:4326</crs>
   </latLonBoundingBox>
   <projectionPolicy>FORCE_DECLARED</projectionPolicy>
   <enabled>true</enabled>
-  <metadata>
-    <entry key="cachingEnabled">false</entry>
-  </metadata>
   <store class="dataStore">
-    <id>DataStoreInfoImpl-1c5a278b:19e41a412e3:-8000</id>
+    <id>DataStoreInfoImpl--486c3543:19e618c610c:-7ef2</id>
   </store>
   <serviceConfiguration>false</serviceConfiguration>
-  <simpleConversionEnabled>false</simpleConversionEnabled>
-  <internationalTitle/>
-  <internationalAbstract/>
   <maxFeatures>0</maxFeatures>
   <numDecimals>0</numDecimals>
   <padWithZeros>false</padWithZeros>

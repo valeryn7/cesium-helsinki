@@ -1,5 +1,5 @@
 <featureType>
-  <id>FeatureTypeInfoImpl-1c5a278b:19e41a412e3:-7fff</id>
+  <id>FeatureTypeInfoImpl--486c3543:19e618c610c:-7ef1</id>
   <name>green_areas_near_model_mat</name>
   <nativeName>green_areas_near_model_mat</nativeName>
   <namespace>
@@ -21,31 +21,25 @@
   AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</nativeCRS>
   <srs>EPSG:4326</srs>
   <nativeBoundingBox>
-    <minx>24.931373596191406</minx>
-    <maxx>24.96253776550293</maxx>
-    <miny>60.157920837402344</miny>
+    <minx>24.929819107055664</minx>
+    <maxx>24.979887008666992</maxx>
+    <miny>60.147586822509766</miny>
     <maxy>60.17155456542969</maxy>
     <crs>EPSG:4326</crs>
   </nativeBoundingBox>
   <latLonBoundingBox>
-    <minx>24.931373596191406</minx>
-    <maxx>24.96253776550293</maxx>
-    <miny>60.157920837402344</miny>
+    <minx>24.929819107055664</minx>
+    <maxx>24.979887008666992</maxx>
+    <miny>60.147586822509766</miny>
     <maxy>60.17155456542969</maxy>
     <crs>EPSG:4326</crs>
   </latLonBoundingBox>
   <projectionPolicy>FORCE_DECLARED</projectionPolicy>
   <enabled>true</enabled>
-  <metadata>
-    <entry key="cachingEnabled">false</entry>
-  </metadata>
   <store class="dataStore">
-    <id>DataStoreInfoImpl-1c5a278b:19e41a412e3:-8000</id>
+    <id>DataStoreInfoImpl--486c3543:19e618c610c:-7ef2</id>
   </store>
   <serviceConfiguration>false</serviceConfiguration>
-  <simpleConversionEnabled>false</simpleConversionEnabled>
-  <internationalTitle/>
-  <internationalAbstract/>
   <maxFeatures>0</maxFeatures>
   <numDecimals>0</numDecimals>
   <padWithZeros>false</padWithZeros>

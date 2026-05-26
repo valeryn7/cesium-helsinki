@@ -1,16 +1,16 @@
 <layer>
   <name>buildings_near_green_points_mat</name>
-  <id>LayerInfoImpl-1c06f61b:19e53601a85:-7fff</id>
+  <id>LayerInfoImpl--486c3543:19e618c610c:-7eec</id>
   <type>VECTOR</type>
   <defaultStyle>
     <id>StyleInfoImpl--570ae188:124761b8d78:-7fdf</id>
   </defaultStyle>
   <resource class="featureType">
-    <id>FeatureTypeInfoImpl-1c06f61b:19e53601a85:-8000</id>
+    <id>FeatureTypeInfoImpl--486c3543:19e618c610c:-7eed</id>
   </resource>
   <attribution>
     <logoWidth>0</logoWidth>
     <logoHeight>0</logoHeight>
   </attribution>
-  <dateCreated>2026-05-23 05:47:47.733 UTC</dateCreated>
+  <dateCreated>2026-05-26 00:03:44.240 UTC</dateCreated>
 </layer>
