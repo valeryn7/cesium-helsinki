@@ -1,9 +1,20 @@
 -- =============================================================================
--- FACTOR DE OCUPACIÓN DEL SUELO REAL - VERSIÓN OPTIMIZADA
+-- FACTOR DE OCUPACIÓN DEL SUELO REAL - VERSIÓN CORREGIDA
 -- Helsinki 3D / 3DCityDB / PostGIS
 --
 -- Pregunta:
 -- ¿Qué porcentaje de cada parcela está ocupado por edificios?
+--
+-- Corrección:
+-- El FOS no se calcula sumando directamente las áreas de intersección,
+-- porque eso puede duplicar áreas si hay geometrías superpuestas.
+--
+-- Ahora:
+-- 1. Se calcula la intersección real edificio/parcela.
+-- 2. Por parcela, se unen todas las geometrías ocupadas.
+-- 3. Recién después se calcula el área ocupada.
+--
+-- Esto evita valores imposibles como FOS > 100%.
 --
 -- Requiere:
 -- - analysis.urban_building_base_mat
@@ -39,6 +50,14 @@ DROP MATERIALIZED VIEW IF EXISTS analysis.buildings_clean_mat CASCADE;
 
 -- =============================================================================
 -- 2. Normalizar edificios
+--
+-- Se limpian las geometrías de edificios:
+-- - Se convierten curvas a líneas.
+-- - Se fuerzan a 2D.
+-- - Se validan.
+-- - Se extraen solo polígonos.
+-- - Se aplica ST_UnaryUnion para disolver solapamientos internos.
+-- - Se guardan como MultiPolygon.
 -- =============================================================================
 
 CREATE MATERIALIZED VIEW analysis.buildings_clean_mat AS
@@ -52,9 +71,14 @@ SELECT
 
   ST_Multi(
     ST_CollectionExtract(
-      ST_MakeValid(
-        ST_Force2D(
-          ST_CurveToLine(b.geom)
+      ST_UnaryUnion(
+        ST_CollectionExtract(
+          ST_MakeValid(
+            ST_Force2D(
+              ST_CurveToLine(b.geom)
+            )
+          ),
+          3
         )
       ),
       3
@@ -79,7 +103,7 @@ USING gist (ST_Transform(geom, 3879));
 -- =============================================================================
 -- 3. Normalizar SOLO parcelas cercanas/intersectables al modelo
 --
--- Esto evita procesar las 36.480 parcelas completas.
+-- Esto evita procesar todas las parcelas completas.
 -- Tomamos parcelas que intersectan el área envolvente de los edificios,
 -- con un buffer chico por seguridad.
 -- =============================================================================
@@ -105,9 +129,14 @@ SELECT
 
   ST_Multi(
     ST_CollectionExtract(
-      ST_MakeValid(
-        ST_Force2D(
-          ST_CurveToLine(p.geom)
+      ST_UnaryUnion(
+        ST_CollectionExtract(
+          ST_MakeValid(
+            ST_Force2D(
+              ST_CurveToLine(p.geom)
+            )
+          ),
+          3
         )
       ),
       3
@@ -139,10 +168,14 @@ USING gist (ST_Transform(geom, 3879));
 --
 -- Pregunta:
 -- ¿Qué edificios intersectan con qué parcelas y cuánto ocupan dentro de ellas?
+--
+-- Corrección:
+-- La geometría final de esta capa ahora es la intersección real
+-- entre edificio y parcela, no el edificio completo.
 -- =============================================================================
 
 CREATE MATERIALIZED VIEW analysis.building_parcel_intersections_mat AS
-WITH intersections AS (
+WITH raw_intersections AS (
   SELECT
     b.gid,
     b.building_id,
@@ -155,25 +188,15 @@ WITH intersections AS (
 
     ST_Area(ST_Transform(p.geom, 3879)) AS parcel_area_m2,
 
-    ST_Area(
-      ST_Intersection(
-        ST_Transform(b.geom, 3879),
-        ST_Transform(p.geom, 3879)
-      )
-    ) AS intersection_area_m2,
-
-    ROW_NUMBER() OVER (
-      PARTITION BY b.gid
-      ORDER BY
-        ST_Area(
-          ST_Intersection(
-            ST_Transform(b.geom, 3879),
-            ST_Transform(p.geom, 3879)
-          )
-        ) DESC
-    ) AS parcel_rank,
-
-    b.geom AS building_geom
+    ST_CollectionExtract(
+      ST_MakeValid(
+        ST_Intersection(
+          ST_Transform(b.geom, 3879),
+          ST_Transform(p.geom, 3879)
+        )
+      ),
+      3
+    ) AS intersection_geom_3879
 
   FROM analysis.buildings_clean_mat b
   JOIN analysis.parcels_clean_mat p
@@ -181,9 +204,41 @@ WITH intersections AS (
       ST_Transform(b.geom, 3879),
       ST_Transform(p.geom, 3879)
     )
+),
+clean_intersections AS (
+  SELECT
+    gid,
+    building_id,
+    building_gml_id,
+    height_m,
+    height_category,
+    footprint_area_m2,
+    parcel_id,
+    parcel_area_m2,
+
+    ST_UnaryUnion(intersection_geom_3879) AS intersection_geom_3879,
+
+    ST_Area(
+      ST_UnaryUnion(intersection_geom_3879)
+    ) AS intersection_area_m2
+
+  FROM raw_intersections
+  WHERE intersection_geom_3879 IS NOT NULL
+    AND NOT ST_IsEmpty(intersection_geom_3879)
+),
+ranked_intersections AS (
+  SELECT
+    *,
+    ROW_NUMBER() OVER (
+      PARTITION BY gid
+      ORDER BY intersection_area_m2 DESC
+    ) AS parcel_rank
+  FROM clean_intersections
+  WHERE intersection_area_m2 > 0
 )
 SELECT
   row_number() OVER (ORDER BY gid, parcel_id)::integer AS id,
+
   gid,
   building_id,
   building_gml_id,
@@ -204,10 +259,14 @@ SELECT
 
   '¿Qué parte de cada parcela es ocupada por la huella de cada edificio?'::text AS question,
 
-  building_geom AS geom
+  ST_Multi(
+    ST_CollectionExtract(
+      ST_Transform(intersection_geom_3879, 4326),
+      3
+    )
+  )::geometry(MultiPolygon, 4326) AS geom
 
-FROM intersections
-WHERE intersection_area_m2 > 0;
+FROM ranked_intersections;
 
 CREATE UNIQUE INDEX building_parcel_intersections_mat_id_idx
 ON analysis.building_parcel_intersections_mat (id);
@@ -225,6 +284,9 @@ USING gist (ST_Transform(geom, 3879));
 --
 -- Pregunta:
 -- ¿Qué porcentaje de la parcela ocupa este edificio?
+--
+-- Esta capa sigue siendo por edificio.
+-- Usa parcel_rank = 1 para quedarse con la parcela principal de cada edificio.
 -- =============================================================================
 
 CREATE MATERIALIZED VIEW analysis.building_parcel_coverage_mat AS
@@ -265,11 +327,25 @@ CREATE INDEX building_parcel_coverage_mat_geom_idx
 ON analysis.building_parcel_coverage_mat
 USING gist (geom);
 
+CREATE INDEX building_parcel_coverage_mat_geom_3879_idx
+ON analysis.building_parcel_coverage_mat
+USING gist (ST_Transform(geom, 3879));
+
 -- =============================================================================
--- 6. Capa por parcela: FOS real
+-- 6. Capa por parcela: FOS real corregido
 --
 -- Pregunta:
 -- ¿Qué porcentaje total de cada parcela está ocupado por edificios?
+--
+-- Corrección:
+-- Antes se usaba:
+-- SUM(intersection_area_m2)
+--
+-- Ahora se usa:
+-- ST_Area(ST_UnaryUnion(ST_Collect(geom)))
+--
+-- Esto une las áreas ocupadas dentro de cada parcela antes de medirlas,
+-- evitando contar dos veces superficies superpuestas.
 -- =============================================================================
 
 CREATE MATERIALIZED VIEW analysis.parcel_fos_mat AS
@@ -282,13 +358,26 @@ WITH parcel_areas AS (
 ),
 coverage AS (
   SELECT
-    parcel_id,
-    COUNT(DISTINCT building_gml_id) AS buildings_count,
-    SUM(intersection_area_m2) AS occupied_area_m2,
-    MAX(height_m) AS max_building_height_m,
-    AVG(height_m) AS avg_building_height_m
-  FROM analysis.building_parcel_intersections_mat
-  GROUP BY parcel_id
+    i.parcel_id,
+
+    COUNT(DISTINCT i.building_gml_id) AS buildings_count,
+
+    LEAST(
+      MAX(i.parcel_area_m2),
+      ST_Area(
+        ST_UnaryUnion(
+          ST_Collect(
+            ST_Transform(i.geom, 3879)
+          )
+        )
+      )
+    ) AS occupied_area_m2,
+
+    MAX(i.height_m) AS max_building_height_m,
+    AVG(i.height_m) AS avg_building_height_m
+
+  FROM analysis.building_parcel_intersections_mat i
+  GROUP BY i.parcel_id
 )
 SELECT
   row_number() OVER (ORDER BY p.parcel_id)::integer AS gid,
@@ -300,7 +389,10 @@ SELECT
   ROUND(COALESCE(c.occupied_area_m2, 0)::numeric, 2) AS occupied_area_m2,
 
   ROUND(
-    (COALESCE(c.occupied_area_m2, 0) / NULLIF(p.parcel_area_m2, 0) * 100)::numeric,
+    LEAST(
+      100,
+      (COALESCE(c.occupied_area_m2, 0) / NULLIF(p.parcel_area_m2, 0) * 100)
+    )::numeric,
     2
   ) AS fos_pct,
 
@@ -331,6 +423,10 @@ ON analysis.parcel_fos_mat (parcel_id);
 CREATE INDEX parcel_fos_mat_geom_idx
 ON analysis.parcel_fos_mat
 USING gist (geom);
+
+CREATE INDEX parcel_fos_mat_geom_3879_idx
+ON analysis.parcel_fos_mat
+USING gist (ST_Transform(geom, 3879));
 
 -- =============================================================================
 -- 7. Vista resumen sin geometría
@@ -387,3 +483,17 @@ SELECT
 FROM analysis.parcel_fos_mat
 ORDER BY fos_pct DESC
 LIMIT 20;
+
+-- =============================================================================
+-- 9. Control extra: detectar si todavía aparece algún FOS imposible
+-- =============================================================================
+
+SELECT
+  parcel_id,
+  parcel_area_m2,
+  occupied_area_m2,
+  fos_pct,
+  buildings_count
+FROM analysis.parcel_fos_mat
+WHERE fos_pct > 100
+ORDER BY fos_pct DESC;
