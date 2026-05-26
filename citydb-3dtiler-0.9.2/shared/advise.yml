@@ -7,6 +7,7 @@ commandset:
     db_port: 5432
     db_schema: citydb
     db_username: valerynater
+    exclude_objectclass: []
     output_file: advise.yml
     output_folder: shared
     separate_tilesets: null
@@ -15,7 +16,7 @@ commandset:
     tiler_app: pg2b3dm
     tilers_path: tiler_app/
     transparency: opaque
-max_features: 93
+max_features: 105
 objectclasses:
 -   name: Bridge
     properties:

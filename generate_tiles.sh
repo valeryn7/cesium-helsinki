@@ -8,7 +8,17 @@ echo "======================================"
 
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TILER_DIR="$PROJECT_DIR/citydb-3dtiler-0.9.2"
-OUTPUT_DIR="$PROJECT_DIR/helsinki_tiles"
+
+# Si no se pasa parámetro, genera el tileset completo por defecto.
+# Ejemplos:
+# ./generate_tiles.sh
+# ./generate_tiles.sh "$PWD/helsinki_tiles_no_floor"
+OUTPUT_DIR="${1:-$PROJECT_DIR/helsinki_tiles}"
+
+if [[ "$OUTPUT_DIR" != /* ]]; then
+  OUTPUT_DIR="$PROJECT_DIR/$OUTPUT_DIR"
+fi
+
 VENV_DIR="$PROJECT_DIR/.venv"
 PYTHON_BIN="$VENV_DIR/bin/python"
 DB_CONFIG_FILE="$PROJECT_DIR/db_config.sh"
@@ -69,6 +79,14 @@ mkdir -p "$TILER_DIR/shared"
 echo "Ejecutando citydb-3dtiler..."
 cd "$TILER_DIR"
 
+EXTRA_TILER_ARGS=()
+if [[ "$OUTPUT_DIR" == *"no_floor"* ]]; then
+  echo "Modo sin piso: excluyendo GroundSurface, OuterFloorSurface y TINRelief"
+  EXTRA_TILER_ARGS+=(--exclude-objectclass GroundSurface)
+  EXTRA_TILER_ARGS+=(--exclude-objectclass OuterFloorSurface)
+  EXTRA_TILER_ARGS+=(--exclude-objectclass TINRelief)
+fi
+
 "$PYTHON_BIN" citydb-3dtiler.py \
   -H "$DB_HOST" \
   -P "$DB_PORT" \
@@ -77,7 +95,8 @@ cd "$TILER_DIR"
   -u "$DB_USER" \
   -p "$DB_PASSWORD" \
   --tiler-app pg2b3dm \
-  tile
+  tile \
+  "${EXTRA_TILER_ARGS[@]}"
 
 echo ""
 echo "Copiando tiles generados..."

@@ -1,0 +1,41 @@
+<featureType>
+  <id>FeatureTypeInfoImpl-4a9faa1:19e625a554c:-7c03</id>
+  <name>high_shadow_risk_green_points</name>
+  <nativeName>high_shadow_risk_green_points</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl-ad77682:19e37a764fe:-7fff</id>
+  </namespace>
+  <title>high_shadow_risk_green_points</title>
+  <keywords>
+    <string>features</string>
+    <string>high_shadow_risk_green_points</string>
+  </keywords>
+  <srs>EPSG:4326</srs>
+  <nativeBoundingBox>
+    <minx>24.941929202270146</minx>
+    <maxx>24.9629331875955</maxx>
+    <miny>60.15324469623046</miny>
+    <maxy>60.168001889984325</maxy>
+    <crs>EPSG:4326</crs>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>24.941929202270146</minx>
+    <maxx>24.9629331875955</maxx>
+    <miny>60.15324469623046</miny>
+    <maxy>60.168001889984325</maxy>
+    <crs>EPSG:4326</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl--486c3543:19e618c610c:-753b</id>
+  </store>
+  <serviceConfiguration>false</serviceConfiguration>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>

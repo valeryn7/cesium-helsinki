@@ -1,0 +1,16 @@
+<layer>
+  <name>shadow_risk_green_mat</name>
+  <id>LayerInfoImpl-4a9faa1:19e625a554c:-7c04</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--570ae188:124761b8d78:-7fdf</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-4a9faa1:19e625a554c:-7c05</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+  <dateCreated>2026-05-26 03:37:49.172 UTC</dateCreated>
+</layer>

@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>Helsinki 3D - Green Spaces + FOS</title>
+  <title>Helsinki 3D - Green Spaces + FOS + FAR + Sombra</title>
 
   <script src="https://cesium.com/downloads/cesiumjs/releases/1.127/Build/Cesium/Cesium.js"></script>
   <link href="https://cesium.com/downloads/cesiumjs/releases/1.127/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
@@ -26,7 +26,7 @@
       top: 14px;
       left: 14px;
       z-index: 10;
-      width: 430px;
+      width: 440px;
       max-width: calc(100vw - 28px);
       max-height: calc(100vh - 28px);
       overflow-y: auto;
@@ -112,6 +112,11 @@
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
+    .layer-row.loading {
+      border-color: rgba(250, 204, 21, 0.55);
+      box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.18) inset;
+    }
+
     .layer-info {
       display: flex;
       align-items: center;
@@ -142,6 +147,18 @@
       font-size: 11px;
       color: rgba(255, 255, 255, 0.55);
       margin-top: 2px;
+    }
+
+    .layer-loading {
+      margin-top: 2px;
+      font-size: 10.5px;
+      color: #facc15;
+      letter-spacing: 0.02em;
+      display: none;
+    }
+
+    .layer-row.loading .layer-loading {
+      display: block;
     }
 
     .switch {
@@ -247,7 +264,7 @@
       right: 14px;
       top: 14px;
       z-index: 11;
-      width: 380px;
+      width: 390px;
       max-width: calc(100vw - 28px);
       display: none;
       background: rgba(8, 13, 24, 0.95);
@@ -302,9 +319,9 @@
   <div id="cesiumContainer"></div>
 
   <div id="panel">
-    <h1>Helsinki 3D: Green Spaces + FOS</h1>
+    <h1>Helsinki 3D: Green Spaces + FOS + FAR + Sombra</h1>
     <p>
-      Modelo 3D, espacios verdes cercanos y Factor de Ocupación del Suelo por parcela.
+      Modelo 3D, espacios verdes cercanos, ocupación del suelo, densidad construida y riesgo aproximado de sombra.
     </p>
 
     <div class="status">
@@ -319,7 +336,7 @@
         <span class="legend-poly" style="background:#7f9fb3;"></span>
         <div>
           <div class="layer-name">Modelo con apariencia</div>
-          <div class="layer-desc">3D Tiles original</div>
+          <div class="layer-desc">3D Tiles completo</div>
         </div>
       </div>
       <label class="switch"><input id="toggleTextured" type="checkbox" checked /><span class="slider"></span></label>
@@ -330,23 +347,32 @@
         <span class="legend-poly" style="background:#d8e2e3;"></span>
         <div>
           <div class="layer-name">Modelo sin piso</div>
-          <div class="layer-desc">Intento de ocultar terreno/suelo y ver edificios encima</div>
+          <div class="layer-desc">Tileset separado: edificios sin terreno</div>
         </div>
       </div>
       <label class="switch"><input id="toggleNoFloor" type="checkbox" /><span class="slider"></span></label>
     </div>
 
     <div class="section-title">Análisis</div>
+    <div id="shadowScenarioInfo" class="hint"></div>
     <div id="analysisControls"></div>
 
     <div class="group-title">Leyenda Green Spaces</div>
     <div class="legend">
       <div class="legend-item"><span class="legend-box" style="background:#22c55e;"></span> Espacio verde cercano</div>
-      <div class="legend-item"><span class="legend-box" style="background:#ef4444;"></span> Edificio muy alto</div>
+      <div class="legend-item"><span class="legend-box" style="background:#e74c3c;"></span> Edificio muy alto</div>
       <div class="legend-item"><span class="legend-box" style="background:#f39c12;"></span> Edificio alto</div>
       <div class="legend-item"><span class="legend-box" style="background:#3498db;"></span> Edificio medio</div>
       <div class="legend-item"><span class="legend-box" style="background:#95a5a6;"></span> Edificio bajo</div>
       <div class="legend-item"><span class="legend-box" style="background:#ef4444;"></span> Alto cerca de verde</div>
+    </div>
+
+    <div class="group-title">Leyenda sombra sobre parques</div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-box" style="background:#7f1d1d;"></span> Riesgo muy alto</div>
+      <div class="legend-item"><span class="legend-box" style="background:#ef4444;"></span> Riesgo alto</div>
+      <div class="legend-item"><span class="legend-box" style="background:#f97316;"></span> Riesgo medio</div>
+      <div class="legend-item"><span class="legend-box" style="background:#facc15;"></span> Riesgo bajo</div>
     </div>
 
     <div class="group-title">Leyenda FOS</div>
@@ -357,14 +383,25 @@
       <div class="legend-item"><span class="legend-box" style="background:#94a3b8;"></span> Parcela vacía</div>
     </div>
 
+    <div class="group-title">Leyenda FAR / densidad</div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-box" style="background:#7f1d1d;"></span> FAR alto ≥ 3.0</div>
+      <div class="legend-item"><span class="legend-box" style="background:#f97316;"></span> FAR medio ≥ 1.5</div>
+      <div class="legend-item"><span class="legend-box" style="background:#8b5cf6;"></span> FAR bajo</div>
+      <div class="legend-item"><span class="legend-box" style="background:#94a3b8;"></span> Sin edificios</div>
+    </div>
+
     <div class="hint">
-      Al hacer click, el visor prioriza FOS y Edificio vs parcela. El elemento seleccionado queda resaltado con borde amarillo.
+      El elemento seleccionado queda resaltado con borde amarillo.
+      Prioridad de click: riesgo de sombra → FOS → FAR → Edificio vs parcela → espacios verdes.
     </div>
 
     <div class="button-row">
-      <button onclick="zoomToActiveTiles()">Zoom al modelo</button>
+      <button onclick="zoomToActiveTiles()">Zoom modelo</button>
       <button onclick="zoomToLayer('parcelFos')">Zoom FOS</button>
-      <button onclick="flyToHelsinki()">Volver a la zona</button>
+      <button onclick="zoomToLayer('parcelFar')">Zoom FAR</button>
+      <button onclick="zoomToLayer('shadowRisk')">Zoom sombra</button>
+      <button onclick="flyToHelsinki()">Volver</button>
     </div>
   </div>
 
@@ -376,7 +413,13 @@
 
   <script>
     const TILESET_URL = "./helsinki_tiles/tileset.json";
+    const TILESET_NO_FLOOR_URL = "./helsinki_tiles_no_floor/tileset.json";
+    const DEFAULT_MODEL = "textured";
     const GEOSERVER_BASE = "http://localhost:8080/geoserver/helsinki/ows";
+    const SHADOW_SCENARIO_LOCAL_HOUR = "12:00";
+    const SHADOW_SCENARIO_SEASON = "invierno";
+    const SHADOW_SCENARIO_AZIMUTH_DEG = 180;
+    const SHADOW_SCENARIO_ELEVATION_DEG = 6;
 
     function wfsUrl(typeName) {
       return (
@@ -395,6 +438,8 @@
       terrainProvider: new Cesium.EllipsoidTerrainProvider(),
       timeline: false,
       animation: false,
+      requestRenderMode: true,
+      maximumRenderTimeChange: Infinity,
       geocoder: false,
       homeButton: true,
       sceneModePicker: true,
@@ -408,9 +453,17 @@
     viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#101820");
     viewer.scene.backgroundColor = Cesium.Color.fromCssColorString("#05070a");
 
+    function refreshScene() {
+      if (viewer && viewer.scene) {
+        viewer.scene.requestRender();
+      }
+    }
+
     let texturedTileset = null;
     let noFloorTileset = null;
+
     const loadedLayers = {};
+    const loadingLayers = {};
     let highlightedEntity = null;
     let highlightedOriginalMaterial = null;
     let highlightedOriginalOutlineColor = null;
@@ -422,6 +475,11 @@
     const popupTitle = document.getElementById("popupTitle");
     const popupContent = document.getElementById("popupContent");
     const controls = document.getElementById("analysisControls");
+    const shadowScenarioInfo = document.getElementById("shadowScenarioInfo");
+
+    function shadowScenarioLabel() {
+      return `Escenario de sombra proyectada: ${SHADOW_SCENARIO_SEASON}, ${SHADOW_SCENARIO_LOCAL_HOUR} (azimut ${SHADOW_SCENARIO_AZIMUTH_DEG}°, elevación ${SHADOW_SCENARIO_ELEVATION_DEG}°).`;
+    }
 
     const groups = [
       {
@@ -433,7 +491,7 @@
             title: "Espacios verdes cercanos",
             desc: "Áreas verdes a menos de 500 m del modelo",
             color: "#22c55e",
-            defaultShow: true,
+            defaultShow: false,
             geometry: "polygon",
             styleBy: "fixed",
             question: "¿Qué espacios verdes están cerca de la zona del modelo 3D?",
@@ -445,7 +503,7 @@
             title: "Edificios por altura",
             desc: "Puntos clasificados por altura",
             color: "#3498db",
-            defaultShow: true,
+            defaultShow: false,
             geometry: "point",
             styleBy: "height_category",
             question: "¿Qué edificios hay y qué altura estimada tienen?",
@@ -469,22 +527,46 @@
             title: "Altos cerca de verde",
             desc: "Altura ≥ 25 m y distancia ≤ 100 m",
             color: "#ef4444",
-            defaultShow: true,
+            defaultShow: false,
             geometry: "point",
             styleBy: "fixed",
             question: "¿Cuántos edificios altos están próximos a espacios verdes?",
             featureType: "Edificio alto cerca de verde"
+          },
+          {
+            id: "shadowRisk",
+            typeName: "shadow_risk_green_mat",
+            title: "Riesgo de sombra sobre parques",
+            desc: "Sombra proyectada (escenario solar fijo) sobre áreas verdes",
+            color: "#7f1d1d",
+            defaultShow: false,
+            geometry: "polygon",
+            styleBy: "shadow_risk_level",
+            question: "¿Qué edificios altos cercanos a parques podrían generar mayor riesgo de sombra?",
+            featureType: "Edificio con riesgo de sombra"
+          },
+          {
+            id: "highShadowRisk",
+            typeName: "high_shadow_risk_green_points",
+            title: "Sombra alta / muy alta",
+            desc: "Sectores verdes con cobertura de sombra HIGH o VERY_HIGH",
+            color: "#ef4444",
+            defaultShow: false,
+            geometry: "polygon",
+            styleBy: "shadow_risk_level",
+            question: "¿Qué edificios tienen riesgo alto de sombra sobre espacios verdes?",
+            featureType: "Edificio con alto riesgo de sombra"
           }
         ]
       },
       {
-        title: "Factor de Ocupación del Suelo",
+        title: "FOS y FAR",
         layers: [
           {
             id: "parcels",
             typeName: "parcels_clean_mat",
             title: "Parcelas del área",
-            desc: "Parcelas reales cercanas al modelo 3D",
+            desc: "Parcelas reales cercanas al modelo",
             color: "#38bdf8",
             defaultShow: false,
             geometry: "polygon",
@@ -498,11 +580,23 @@
             title: "FOS por parcela",
             desc: "Porcentaje de parcela ocupado por edificios",
             color: "#f97316",
-            defaultShow: true,
+            defaultShow: false,
             geometry: "polygon",
             styleBy: "fos_level",
             question: "¿Qué porcentaje de cada parcela está ocupado por edificios?",
             featureType: "Parcela con FOS"
+          },
+          {
+            id: "parcelFar",
+            typeName: "parcel_far_mat",
+            title: "FAR / densidad por parcela",
+            desc: "Superficie construida estimada sobre área de parcela",
+            color: "#8b5cf6",
+            defaultShow: false,
+            geometry: "polygon",
+            styleBy: "far_level",
+            question: "¿Qué parcelas tienen mayor densidad construida estimada?",
+            featureType: "Parcela con FAR"
           },
           {
             id: "buildingParcelCoverage",
@@ -515,8 +609,7 @@
             styleBy: "coverage_level",
             question: "¿Qué porcentaje de la parcela ocupa cada edificio?",
             featureType: "Edificio dentro de parcela"
-          },
-
+          }
         ]
       }
     ];
@@ -544,6 +637,22 @@
       return "#38bdf8";
     }
 
+    function getCssColorForFar(level) {
+      if (level === "HIGH") return "#7f1d1d";
+      if (level === "MEDIUM") return "#f97316";
+      if (level === "LOW") return "#8b5cf6";
+      if (level === "EMPTY") return "#94a3b8";
+      return "#38bdf8";
+    }
+
+    function getCssColorForShadowRisk(level) {
+      if (level === "VERY_HIGH") return "#7f1d1d";
+      if (level === "HIGH") return "#ef4444";
+      if (level === "MEDIUM") return "#f97316";
+      if (level === "LOW") return "#facc15";
+      return "#38bdf8";
+    }
+
     function getProperty(entity, name) {
       return entity.properties && entity.properties[name]
         ? entity.properties[name].getValue()
@@ -567,6 +676,7 @@
         group.layers.forEach((config) => {
           const row = document.createElement("div");
           row.className = "layer-row";
+          row.id = `row-${config.id}`;
           const markerClass = config.geometry === "point" ? "legend-point" : "legend-poly";
 
           row.innerHTML = `
@@ -575,6 +685,7 @@
               <div>
                 <div class="layer-name">${config.title}</div>
                 <div class="layer-desc">${config.desc}</div>
+                <div class="layer-loading" id="loading-${config.id}">Cargando capa...</div>
               </div>
             </div>
             <label class="switch">
@@ -592,44 +703,81 @@
       return groups.flatMap((group) => group.layers);
     }
 
+    function syncModelToggles() {
+      const toggleTextured = document.getElementById("toggleTextured");
+      const toggleNoFloor = document.getElementById("toggleNoFloor");
+
+      if (toggleTextured) {
+        toggleTextured.checked = !!(texturedTileset && texturedTileset.show);
+      }
+
+      if (toggleNoFloor) {
+        toggleNoFloor.checked = !!(noFloorTileset && noFloorTileset.show);
+      }
+    }
+
+    async function ensureNoFloorTileset() {
+      if (noFloorTileset) return true;
+
+      try {
+        noFloorTileset = await Cesium.Cesium3DTileset.fromUrl(TILESET_NO_FLOOR_URL, {
+          maximumScreenSpaceError: 2
+        });
+        noFloorTileset.show = false;
+        viewer.scene.primitives.add(noFloorTileset);
+        refreshScene();
+        return true;
+      } catch (error) {
+        console.warn("No se pudo cargar helsinki_tiles_no_floor.", error);
+        return false;
+      }
+    }
+
+    async function setActiveModel(modelName) {
+      if (!texturedTileset) return;
+
+      if (modelName === "no_floor") {
+        const noFloorReady = await ensureNoFloorTileset();
+        if (!noFloorReady) {
+          texturedTileset.show = true;
+          syncModelToggles();
+          setStatus("No se pudo cargar el modelo sin piso. Se muestra el modelo con apariencia.", "error");
+          return;
+        }
+
+        noFloorTileset.show = true;
+        texturedTileset.show = false;
+        viewer.scene.primitives.raiseToTop(noFloorTileset);
+        syncModelToggles();
+        refreshScene();
+        return;
+      }
+
+      texturedTileset.show = true;
+      if (noFloorTileset) noFloorTileset.show = false;
+      syncModelToggles();
+      refreshScene();
+    }
+
     async function loadTilesets() {
-      // Modelo original con apariencia/textura.
       texturedTileset = await Cesium.Cesium3DTileset.fromUrl(TILESET_URL, {
-        maximumScreenSpaceError: 1
-      });
-
-      // Segunda instancia del mismo tileset para intentar ver edificios sin suelo/terreno.
-      // Esto depende de que el tileset conserve propiedades como class/object_class/citydb_class.
-      noFloorTileset = await Cesium.Cesium3DTileset.fromUrl(TILESET_URL, {
-        maximumScreenSpaceError: 1
-      });
-
-      noFloorTileset.style = new Cesium.Cesium3DTileStyle({
-        show:
-          "(${class} !== 'GroundSurface') && " +
-          "(${class} !== 'TINRelief') && " +
-          "(${class} !== 'ReliefFeature') && " +
-          "(${class} !== 'LandUse') && " +
-          "(${object_class} !== 'GroundSurface') && " +
-          "(${object_class} !== 'TINRelief') && " +
-          "(${citydb_class} !== 'GroundSurface') && " +
-          "(${citydb_class} !== 'TINRelief')",
-        color: "color('#d8e2e3', 1.0)"
+        maximumScreenSpaceError: 2
       });
 
       texturedTileset.show = true;
-      noFloorTileset.show = false;
-
       viewer.scene.primitives.add(texturedTileset);
-      viewer.scene.primitives.add(noFloorTileset);
+      refreshScene();
 
-      // Si se activa, que quede por encima del otro tileset.
-      viewer.scene.primitives.raiseToTop(noFloorTileset);
+      if (DEFAULT_MODEL === "no_floor") {
+        await setActiveModel("no_floor");
+      } else {
+        await setActiveModel("textured");
+      }
 
-      await viewer.zoomTo(texturedTileset);
+      await viewer.zoomTo(noFloorTileset && noFloorTileset.show ? noFloorTileset : texturedTileset);
     }
 
-    async function loadAnalysisLayer(config) {
+    async function loadAnalysisLayer(config, initialShow = config.defaultShow) {
       const url = wfsUrl(config.typeName);
 
       console.group(`Cargando capa WFS: ${config.title}`);
@@ -672,8 +820,9 @@
         clampToGround: false
       });
 
-      ds.show = config.defaultShow;
+      ds.show = !!initialShow;
       viewer.dataSources.add(ds);
+      refreshScene();
 
       ds.entities.values.forEach((entity) => {
         entity.analysisType = config.id;
@@ -681,7 +830,6 @@
         entity.question = config.question;
         entity.featureType = config.featureType || config.title;
 
-        // Evita el ícono default tipo pin/mensaje de Cesium.
         entity.billboard = undefined;
         entity.label = undefined;
 
@@ -699,13 +847,22 @@
           colorCss = getCssColorForFos(getProperty(entity, "coverage_level"));
         }
 
+        if (config.styleBy === "far_level") {
+          colorCss = getCssColorForFar(getProperty(entity, "far_level"));
+        }
+
+        if (config.styleBy === "shadow_risk_level") {
+          colorCss = getCssColorForShadowRisk(getProperty(entity, "shadow_risk_level"));
+        }
+
         const color = Cesium.Color.fromCssColorString(colorCss);
 
         if (entity.polygon) {
           const alpha =
             config.id === "green" ? 0.24 :
-            config.id === "parcelFos" ? 0.34 :
-            config.id === "buildingParcelCoverage" ? 0.28 :
+            config.id === "parcelFos" ? 0.30 :
+            config.id === "parcelFar" ? 0.34 :
+            config.id === "buildingParcelCoverage" ? 0.26 :
             config.id === "parcels" ? 0.16 :
             0.30;
 
@@ -713,10 +870,10 @@
           entity.polygon.outline = true;
           entity.polygon.outlineColor = color.withAlpha(0.95);
 
-          // Levanta un poquito las capas para que no queden peleando con el suelo/tiles.
           entity.polygon.height =
             config.id === "green" ? 0.6 :
             config.id === "parcelFos" ? 2.0 :
+            config.id === "parcelFar" ? 2.6 :
             config.id === "buildingParcelCoverage" ? 3.0 :
             config.id === "parcels" ? 1.0 :
             2.5;
@@ -725,7 +882,11 @@
         if (entity.point || config.geometry === "point") {
           entity.point = new Cesium.PointGraphics({
             color,
-            pixelSize: config.id === "highNearGreen" ? 12 : 9,
+            pixelSize:
+              config.id === "shadowRisk" ? 11 :
+              config.id === "highShadowRisk" ? 13 :
+              config.id === "highNearGreen" ? 12 :
+              9,
             outlineColor: Cesium.Color.WHITE,
             outlineWidth: 2,
             disableDepthTestDistance: Number.POSITIVE_INFINITY
@@ -738,9 +899,83 @@
       console.groupEnd();
     }
 
+    function reportLayerFailure(layerError) {
+      console.error("======================================");
+      console.error("CAPA QUE FALLÓ");
+      console.error("Título:", layerError.layerTitle);
+      console.error("typeName:", layerError.typeName);
+      console.error("URL:", layerError.url);
+      console.error("Error original:", layerError.originalError);
+      console.error("======================================");
+    }
+
+    function setLayerLoading(layerId, isLoading, message = "Cargando capa...") {
+      const row = document.getElementById(`row-${layerId}`);
+      const hint = document.getElementById(`loading-${layerId}`);
+      const toggle = document.getElementById(`toggle-${layerId}`);
+
+      if (row) {
+        if (isLoading) {
+          row.classList.add("loading");
+        } else {
+          row.classList.remove("loading");
+        }
+      }
+
+      if (hint) {
+        hint.textContent = message;
+      }
+
+      if (toggle) {
+        toggle.disabled = !!isLoading;
+      }
+    }
+
+    function bindAnalysisToggle(config) {
+      const toggle = document.getElementById(`toggle-${config.id}`);
+      if (!toggle) return;
+
+      toggle.addEventListener("change", async (event) => {
+        if (!event.target.checked) {
+          if (loadedLayers[config.id]) {
+            loadedLayers[config.id].show = false;
+            refreshScene();
+          }
+          return;
+        }
+
+        if (loadedLayers[config.id]) {
+          loadedLayers[config.id].show = true;
+          refreshScene();
+          return;
+        }
+
+        if (!loadingLayers[config.id]) {
+          setLayerLoading(config.id, true, "Cargando capa...");
+          setStatus(`Cargando capa: ${config.title}...`, "loading");
+          loadingLayers[config.id] = loadAnalysisLayer(config, true)
+            .then(() => {
+              setStatus(`Capa lista: ${config.title}`, "ok");
+            })
+            .catch((layerError) => {
+              reportLayerFailure(layerError);
+              toggle.checked = false;
+              setStatus(`Error cargando ${config.title}. Ver consola.`, "error");
+            })
+            .finally(() => {
+              setLayerLoading(config.id, false);
+              loadingLayers[config.id] = null;
+            });
+        }
+
+        await loadingLayers[config.id];
+      });
+    }
+
     async function loadAll() {
       setStatus("Cargando 3D Tiles...", "loading");
       createLayerControls();
+      allLayerConfigs().forEach(bindAnalysisToggle);
 
       try {
         await loadTilesets();
@@ -750,37 +985,33 @@
         return;
       }
 
-      setStatus("Cargando capas WFS...", "loading");
+      const defaultLayers = allLayerConfigs().filter((config) => config.defaultShow);
+
+      if (defaultLayers.length === 0) {
+        setStatus("Modelo listo. Activá capas para cargar análisis.", "ok");
+        return;
+      }
+
+      setStatus("Cargando capas WFS iniciales...", "loading");
 
       let loadedCount = 0;
       let failedCount = 0;
 
-      for (const config of allLayerConfigs()) {
+      for (const config of defaultLayers) {
         try {
-          await loadAnalysisLayer(config);
+          setLayerLoading(config.id, true, "Cargando capa inicial...");
+          await loadAnalysisLayer(config, true);
           loadedCount++;
-
-          const toggle = document.getElementById(`toggle-${config.id}`);
-          toggle.addEventListener("change", (event) => {
-            if (loadedLayers[config.id]) {
-              loadedLayers[config.id].show = event.target.checked;
-            }
-          });
         } catch (layerError) {
           failedCount++;
-          console.error("======================================");
-          console.error("CAPA QUE FALLÓ");
-          console.error("Título:", layerError.layerTitle);
-          console.error("typeName:", layerError.typeName);
-          console.error("URL:", layerError.url);
-          console.error("Error original:", layerError.originalError);
-          console.error("======================================");
+          reportLayerFailure(layerError);
 
           const toggle = document.getElementById(`toggle-${config.id}`);
           if (toggle) {
             toggle.checked = false;
-            toggle.disabled = true;
           }
+        } finally {
+          setLayerLoading(config.id, false);
         }
       }
 
@@ -791,42 +1022,31 @@
       }
     }
 
-    function setTexturedVisible(visible) {
-      if (!texturedTileset) return;
-
-      texturedTileset.show = visible;
-
-      // Para que no se superpongan dos modelos iguales, si prendo el original apago "sin piso".
-      if (visible && noFloorTileset) {
-        noFloorTileset.show = false;
-        const toggle = document.getElementById("toggleNoFloor");
-        if (toggle) toggle.checked = false;
-      }
-    }
-
-    function setNoFloorVisible(visible) {
-      if (!noFloorTileset) return;
-
-      noFloorTileset.show = visible;
-
-      // Para que se vea arriba y no quede mezclado con el modelo original.
-      if (visible) {
-        if (texturedTileset) {
-          texturedTileset.show = false;
-          const toggleTextured = document.getElementById("toggleTextured");
-          if (toggleTextured) toggleTextured.checked = false;
-        }
-
-        viewer.scene.primitives.raiseToTop(noFloorTileset);
-      }
-    }
-
     document.getElementById("toggleTextured").addEventListener("change", (event) => {
-      setTexturedVisible(event.target.checked);
+      if (!texturedTileset) return;
+      texturedTileset.show = event.target.checked;
+      refreshScene();
     });
 
-    document.getElementById("toggleNoFloor").addEventListener("change", (event) => {
-      setNoFloorVisible(event.target.checked);
+    document.getElementById("toggleNoFloor").addEventListener("change", async (event) => {
+      if (!event.target.checked) {
+        if (noFloorTileset) {
+          noFloorTileset.show = false;
+          refreshScene();
+        }
+        return;
+      }
+
+      const noFloorReady = await ensureNoFloorTileset();
+      if (!noFloorReady) {
+        event.target.checked = false;
+        setStatus("No se pudo cargar el modelo sin piso.", "error");
+        return;
+      }
+
+      noFloorTileset.show = true;
+      viewer.scene.primitives.raiseToTop(noFloorTileset);
+      refreshScene();
     });
 
     async function zoomToActiveTiles() {
@@ -863,19 +1083,6 @@
       });
     }
 
-    function hidePopup() {
-      popup.style.display = "none";
-      clearHighlight();
-    }
-
-    function showPopup(title, html) {
-      popupTitle.textContent = title;
-      popupContent.innerHTML = html;
-      popup.style.display = "block";
-    }
-
-    const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-
     function clearHighlight() {
       if (!highlightedEntity || !highlightedEntity.polygon) {
         highlightedEntity = null;
@@ -907,17 +1114,31 @@
       entity.polygon.outlineWidth = 4;
     }
 
+    function hidePopup() {
+      popup.style.display = "none";
+      clearHighlight();
+    }
+
+    function showPopup(title, html) {
+      popupTitle.textContent = title;
+      popupContent.innerHTML = html;
+      popup.style.display = "block";
+    }
+
     function pickPreferredEntity(position) {
       const picks = viewer.scene.drillPick(position, 12);
 
       const priority = {
-        parcelFos: 1,
-        buildingParcelCoverage: 2,
-        highNearGreen: 3,
-        heightPoints: 4,
-        nearGreen: 5,
-        green: 6,
-        parcels: 7
+        shadowRisk: 1,
+        highShadowRisk: 2,
+        parcelFos: 3,
+        parcelFar: 4,
+        buildingParcelCoverage: 5,
+        highNearGreen: 6,
+        heightPoints: 7,
+        nearGreen: 8,
+        green: 9,
+        parcels: 10
       };
 
       let best = null;
@@ -927,7 +1148,6 @@
         const entity = pick && pick.id;
         if (!entity || !entity.analysisType) continue;
 
-        // Ignora capas apagadas aunque Cesium llegue a pickear algo raro.
         const ds = loadedLayers[entity.analysisType];
         if (ds && ds.show === false) continue;
 
@@ -940,6 +1160,8 @@
 
       return best;
     }
+
+    const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
 
     handler.setInputAction((movement) => {
       const entity = pickPreferredEntity(movement.position);
@@ -962,23 +1184,41 @@
         <p><b>ID interno capa:</b> ${selectedLayer}</p>
         <p><b>Pregunta:</b> ${question}</p>
         <p><b>Parcela:</b> ${formatValue(getProperty(entity, "parcel_id"))}</p>
+
         <p><b>FOS parcela:</b> ${formatValue(getProperty(entity, "fos_pct"))}%</p>
         <p><b>Nivel FOS:</b> ${formatValue(getProperty(entity, "fos_level"))}</p>
         <p><b>Ocupación edificio/parcela:</b> ${formatValue(getProperty(entity, "building_parcel_coverage_pct"))}%</p>
         <p><b>Nivel edificio/parcela:</b> ${formatValue(getProperty(entity, "coverage_level"))}</p>
+
+        <p><b>FAR:</b> ${formatValue(getProperty(entity, "far_ratio"))}</p>
+        <p><b>Nivel FAR:</b> ${formatValue(getProperty(entity, "far_level"))}</p>
+        <p><b>Área construida estimada:</b> ${formatValue(getProperty(entity, "estimated_floor_area_m2"))} m²</p>
+        <p><b>Pisos estimados máx.:</b> ${formatValue(getProperty(entity, "max_estimated_floors"))}</p>
+
         <p><b>Área parcela:</b> ${formatValue(getProperty(entity, "parcel_area_m2"))} m²</p>
         <p><b>Área ocupada:</b> ${formatValue(getProperty(entity, "occupied_area_m2"))} m²</p>
         <p><b>Edificios en parcela:</b> ${formatValue(getProperty(entity, "buildings_count"))}</p>
+
         <p><b>Building ID:</b> ${formatValue(getProperty(entity, "building_gml_id") || getProperty(entity, "source_id"))}</p>
         <p><b>GID:</b> ${formatValue(getProperty(entity, "gid"))}</p>
         <p><b>Altura:</b> ${formatValue(getProperty(entity, "height_m") || getProperty(entity, "max_building_height_m"))} m</p>
         <p><b>Categoría:</b> ${formatValue(getProperty(entity, "height_category"))}</p>
         <p><b>Green ID:</b> ${formatValue(getProperty(entity, "green_id") || getProperty(entity, "id"))}</p>
         <p><b>Distancia al verde:</b> ${formatValue(getProperty(entity, "distance_to_green_m"))} m</p>
+
+        <p><b>Score sombra:</b> ${formatValue(getProperty(entity, "shadow_risk_score"))}</p>
+        <p><b>Nivel sombra:</b> ${formatValue(getProperty(entity, "shadow_risk_level"))}</p>
+        <p><b>Motivo sombra:</b> ${formatValue(getProperty(entity, "shadow_risk_reason"))}</p>
+        <p><b>Hora proyectada sombra:</b> ${SHADOW_SCENARIO_LOCAL_HOUR}</p>
+        <p><b>Escenario sombra:</b> ${SHADOW_SCENARIO_SEASON} (azimut ${formatValue(getProperty(entity, "sun_azimuth_deg"), SHADOW_SCENARIO_AZIMUTH_DEG)}°, elevación ${formatValue(getProperty(entity, "sun_elevation_deg"), SHADOW_SCENARIO_ELEVATION_DEG)}°)</p>
       `;
 
       showPopup(layerTitle, html);
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+    if (shadowScenarioInfo) {
+      shadowScenarioInfo.textContent = shadowScenarioLabel();
+    }
 
     loadAll();
   </script>

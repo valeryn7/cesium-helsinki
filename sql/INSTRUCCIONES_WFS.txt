@@ -1,36 +1,36 @@
 1. Abrir QGIS.
 
 2. Ir a:
-   Capa → Añadir capa → Añadir capa WFS/OGC API - Features
+   Capa -> Anadir capa -> Anadir capa WFS/OGC API - Features
 
-3. Crear una conexión nueva:
+3. Crear una conexion nueva:
    Nombre: Helsinki WFS
    URL: https://kartta.hel.fi/ws/geoserver/avoindata/wfs?request=getCapabilities
 
 4. Tocar Conectar.
 
-5. En el buscador escribir:
-   viher
+5. Agregar capa de espacios verdes:
+   Buscar: viher
+   Seleccionar: 1-Viheralue / YLRE_Viheralue_alue
+   Tocar Anadir
 
-6. Buscar y seleccionar una capa que contenga:
-   Viheralue
-   Por ejemplo:
-   YLRE_Viheralue_alue
+6. Agregar capa de parcelas:
+   Buscar: kiinteisto
+   Seleccionar: 2-Kiinteisto / Kiinteisto_alue
+   Tocar Anadir
 
-7. Tocar Añadir y esperar a que cargue en el mapa.
+7. Verificar que ambas capas tengan datos:
+   Click derecho sobre la capa -> Abrir tabla de atributos
 
-8. Verificar que la capa tenga datos:
-   Click derecho sobre la capa → Abrir tabla de atributos
-
-9. Antes de exportar, crear el schema analysis si no existe.
-   En DB Manager → SQL Window ejecutar:
+8. Antes de exportar, crear el schema analysis si no existe.
+   En DB Manager -> SQL Window ejecutar:
 
    CREATE SCHEMA IF NOT EXISTS analysis;
 
-10. Exportar la capa a PostGIS:
-    DB Manager → Export to PostgreSQL
+9. Exportar YLRE_Viheralue_alue a PostGIS:
+   DB Manager -> Export to PostgreSQL
 
-11. Configurar así:
+10. Configurar asi:
     Database: citydb_test
     Schema: analysis
     Table: green_areas
@@ -40,14 +40,37 @@
     Target SRID: EPSG:4326
     Encoding: Automatic
 
-12. Marcar:
+11. Marcar:
     [x] Replace destination table
     [x] Convert field names to lowercase
     [x] Create spatial index
 
-13. Guardar / Exportar.
+12. Guardar / Exportar.
 
-14. Verificar que quedó cargada en PostGIS:
+13. Exportar Kiinteisto_alue a PostGIS:
+    DB Manager -> Export to PostgreSQL
+
+14. Configurar asi:
+    Database: citydb_test
+    Schema: analysis
+    Table: parcels
+    Primary key: id
+    Geometry column: geom
+    Source SRID: EPSG:3879
+    Target SRID: EPSG:4326
+    Encoding: Automatic
+
+15. Marcar:
+    [x] Replace destination table
+    [x] Convert field names to lowercase
+    [x] Create spatial index
+
+16. Guardar / Exportar.
+
+17. Verificar que quedaron cargadas en PostGIS:
 
     SELECT COUNT(*)
     FROM analysis.green_areas;
+
+    SELECT COUNT(*)
+    FROM analysis.parcels;

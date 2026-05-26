@@ -1,0 +1,41 @@
+<featureType>
+  <id>FeatureTypeInfoImpl-4a9faa1:19e625a554c:-7c05</id>
+  <name>shadow_risk_green_mat</name>
+  <nativeName>shadow_risk_green_mat</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl-ad77682:19e37a764fe:-7fff</id>
+  </namespace>
+  <title>shadow_risk_green_mat</title>
+  <keywords>
+    <string>features</string>
+    <string>shadow_risk_green_mat</string>
+  </keywords>
+  <srs>EPSG:4326</srs>
+  <nativeBoundingBox>
+    <minx>24.941926956176758</minx>
+    <maxx>24.96361541748047</maxx>
+    <miny>60.15324401855469</miny>
+    <maxy>60.168006896972656</maxy>
+    <crs>EPSG:4326</crs>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>24.941926956176758</minx>
+    <maxx>24.96361541748047</maxx>
+    <miny>60.15324401855469</miny>
+    <maxy>60.168006896972656</maxy>
+    <crs>EPSG:4326</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl--486c3543:19e618c610c:-753b</id>
+  </store>
+  <serviceConfiguration>false</serviceConfiguration>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>

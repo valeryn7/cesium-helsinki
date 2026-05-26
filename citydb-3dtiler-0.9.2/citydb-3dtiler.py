@@ -41,6 +41,7 @@ def main():
     parser_tile.add_argument("-o", "--output-folder", help="Set the folder for the 3DTiles. Default value is the 'shared' folder.", metavar="Output Folder", nargs="?", default="shared")
     parser_tile.add_argument("--transparency", help="Choose of the possible options. Please consider that transparency values might vary regarding to the selected tiler application.", choices=["blend", "mask", "opaque"], default="opaque")
     parser_tile.add_argument("--custom-style", help="If you want to provide a custom style file (any CSV file not named 'materials_for_features'), you can specify the file name (inc. file extension : CSV) using this argument.", metavar="Name of the custom style file", nargs="?", default="materials_for_features.csv")
+    parser_tile.add_argument("--exclude-objectclass", help="Exclude objectclass(es) from tiling. Can be provided multiple times.", action="append", default=[])
     
     # Database authorization information gathered as a group,
     # so the group arguments can be used both of the commands.

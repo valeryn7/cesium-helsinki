@@ -6,13 +6,21 @@ export PAGER=cat
 export PSQL_PAGER=cat
 
 echo "======================================"
-echo " Helsinki: Green Spaces + FOS"
-echo " SQL + GeoServer publish"
+echo " Helsinki: importar GML + tiles + análisis"
+echo " Completo + sin piso + Green Spaces + FOS + FAR + sombra"
 echo "======================================"
 echo ""
 
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DB_CONFIG_FILE="$PROJECT_DIR/db_config.sh"
+
+SKIP_GEOSERVER=0
+if [ "${1:-}" = "--skip-geoserver" ]; then
+  SKIP_GEOSERVER=1
+elif [ -n "${1:-}" ]; then
+  echo "Uso: $0 [--skip-geoserver]"
+  exit 1
+fi
 
 if [ ! -f "$DB_CONFIG_FILE" ]; then
   echo "ERROR: No se encontró db_config.sh"
@@ -23,19 +31,29 @@ fi
 source "$DB_CONFIG_FILE"
 
 export PGPASSWORD="$DB_PASSWORD"
+export CITYDB_PASSWORD="${DB_PASSWORD:-}"
+
+CITYDB_TOOL="$PROJECT_DIR/citydb-tool-1.3.1/citydb"
+
+GML_DIR="$PROJECT_DIR/gml"
+BUILDINGS_GML="$GML_DIR/export.gml"
+TERRAIN_GML="$GML_DIR/export_terrain.gml"
+
+FULL_TILES_DIR="$PROJECT_DIR/helsinki_tiles"
+NO_FLOOR_TILES_DIR="$PROJECT_DIR/helsinki_tiles_no_floor"
 
 GEOSERVER_URL="http://localhost:8080/geoserver"
 GEOSERVER_USER="admin"
 GEOSERVER_PASSWORD="geoserver"
 
 WORKSPACE="helsinki"
-
-# Datastore limpio para analysis. Evita conflictos con stores viejos.
 DATASTORE="citydb_analysis"
 
 SQL_FILES=(
   "$PROJECT_DIR/sql/green_spaces.sql"
   "$PROJECT_DIR/sql/parcel_fos.sql"
+  "$PROJECT_DIR/sql/parcel_far.sql"
+  "$PROJECT_DIR/sql/shadow_green_risk.sql"
 )
 
 LAYERS=(
@@ -46,14 +64,22 @@ LAYERS=(
   "parcels_clean_mat"
   "building_parcel_coverage_mat"
   "parcel_fos_mat"
+  "parcel_far_mat"
+  "shadow_risk_green_mat"
+  "high_shadow_risk_green_points"
 )
 
 echo "Proyecto: $PROJECT_DIR"
 echo "Base: $DB_NAME"
+echo "Schema CityDB: $DB_SCHEMA"
 echo "Usuario DB: $DB_USER"
-echo "GeoServer: $GEOSERVER_URL"
-echo "Workspace: $WORKSPACE"
-echo "Datastore: $DATASTORE"
+echo "Buildings GML: $BUILDINGS_GML"
+echo "Terrain GML: $TERRAIN_GML"
+echo "Tiles completo: $FULL_TILES_DIR"
+echo "Tiles sin piso: $NO_FLOOR_TILES_DIR"
+if [ "$SKIP_GEOSERVER" = "1" ]; then
+  echo "GeoServer: se omite publicacion (--skip-geoserver)"
+fi
 echo ""
 
 # -------------------------------------------------
@@ -61,14 +87,51 @@ echo ""
 # -------------------------------------------------
 
 echo "======================================"
-echo " Verificando herramientas y tablas base"
+echo " Verificando herramientas y archivos"
 echo "======================================"
 echo ""
 
 for CMD in psql curl; do
   if ! command -v "$CMD" >/dev/null 2>&1; then
     echo "ERROR: No se encontró $CMD"
-    unset PGPASSWORD
+    unset PGPASSWORD CITYDB_PASSWORD
+    exit 1
+  fi
+done
+
+if [ ! -f "$CITYDB_TOOL" ]; then
+  echo "ERROR: No se encontró citydb-tool:"
+  echo "$CITYDB_TOOL"
+  unset PGPASSWORD CITYDB_PASSWORD
+  exit 1
+fi
+
+if [ ! -x "$CITYDB_TOOL" ]; then
+  chmod +x "$CITYDB_TOOL"
+fi
+
+if [ ! -f "$BUILDINGS_GML" ]; then
+  echo "ERROR: No se encontró:"
+  echo "$BUILDINGS_GML"
+  echo "Debe existir gml/export.gml"
+  unset PGPASSWORD CITYDB_PASSWORD
+  exit 1
+fi
+
+if [ ! -f "$PROJECT_DIR/generate_tiles.sh" ]; then
+  echo "ERROR: No se encontró generate_tiles.sh"
+  unset PGPASSWORD CITYDB_PASSWORD
+  exit 1
+fi
+
+if [ ! -x "$PROJECT_DIR/generate_tiles.sh" ]; then
+  chmod +x "$PROJECT_DIR/generate_tiles.sh"
+fi
+
+for SQL_FILE in "${SQL_FILES[@]}"; do
+  if [ ! -f "$SQL_FILE" ]; then
+    echo "ERROR: No existe $SQL_FILE"
+    unset PGPASSWORD CITYDB_PASSWORD
     exit 1
   fi
 done
@@ -88,14 +151,14 @@ PARCELS_EXISTS=$(psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t
 if [ "$GREEN_EXISTS" != "analysis.green_areas" ]; then
   echo "ERROR: Falta analysis.green_areas."
   echo "Importala desde QGIS/WFS como analysis.green_areas."
-  unset PGPASSWORD
+  unset PGPASSWORD CITYDB_PASSWORD
   exit 1
 fi
 
 if [ "$PARCELS_EXISTS" != "analysis.parcels" ]; then
   echo "ERROR: Falta analysis.parcels."
   echo "Importala desde QGIS/WFS como analysis.parcels."
-  unset PGPASSWORD
+  unset PGPASSWORD CITYDB_PASSWORD
   exit 1
 fi
 
@@ -106,9 +169,85 @@ psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
 echo ""
 
 # -------------------------------------------------
-# 2. Preparar urban_building_base_mat para FOS
+# 2. Limpiar base CityDB e importar solo edificios
 # -------------------------------------------------
 
+echo "======================================"
+echo " Limpiando 3DCityDB"
+echo "======================================"
+echo ""
+
+yes | "$CITYDB_TOOL" delete \
+  -H "$DB_HOST" \
+  -P "$DB_PORT" \
+  -d "$DB_NAME" \
+  -S "$DB_SCHEMA" \
+  -u "$DB_USER"
+
+# citydb delete no siempre elimina dem:TINRelief por defecto.
+# Lo borramos siempre antes del tileset "sin piso".
+# Es idempotente: si no hay terreno activo, no borra nada y sigue.
+echo "Asegurando limpieza de terreno (dem:TINRelief) para tiles sin piso..."
+yes | "$CITYDB_TOOL" delete \
+  -H "$DB_HOST" \
+  -P "$DB_PORT" \
+  -d "$DB_NAME" \
+  -S "$DB_SCHEMA" \
+  -u "$DB_USER" \
+  -t dem:TINRelief
+
+echo ""
+echo "======================================"
+echo " Importando edificios"
+echo "======================================"
+echo ""
+
+"$CITYDB_TOOL" import citygml "$BUILDINGS_GML" \
+  -H "$DB_HOST" \
+  -P "$DB_PORT" \
+  -d "$DB_NAME" \
+  -S "$DB_SCHEMA" \
+  -u "$DB_USER"
+
+echo ""
+echo "======================================"
+echo " Generando tiles SIN PISO"
+echo "======================================"
+echo ""
+
+"$PROJECT_DIR/generate_tiles.sh" "$NO_FLOOR_TILES_DIR"
+
+# -------------------------------------------------
+# 3. Importar terreno y generar tiles completos
+# -------------------------------------------------
+
+if [ -f "$TERRAIN_GML" ]; then
+  echo ""
+  echo "======================================"
+  echo " Importando terreno"
+  echo "======================================"
+  echo ""
+
+  "$CITYDB_TOOL" import citygml "$TERRAIN_GML" -H "$DB_HOST" -P "$DB_PORT" -d "$DB_NAME" -S "$DB_SCHEMA" -u "$DB_USER"
+else
+  echo ""
+  echo "ADVERTENCIA: No se encontró export_terrain.gml."
+  echo "Se generará el tileset completo solo con edificios."
+fi
+
+echo ""
+echo "======================================"
+echo " Generando tiles COMPLETOS"
+echo "======================================"
+echo ""
+
+"$PROJECT_DIR/generate_tiles.sh" "$FULL_TILES_DIR"
+
+# -------------------------------------------------
+# 4. Preparar urban_building_base_mat para FOS
+# -------------------------------------------------
+
+echo ""
 echo "======================================"
 echo " Preparando base de edificios para FOS"
 echo "======================================"
@@ -210,24 +349,17 @@ SELECT COUNT(*) AS urban_buildings
 FROM analysis.urban_building_base_mat;
 SQL
 
+# -------------------------------------------------
+# 5. Ejecutar SQL de análisis
+# -------------------------------------------------
+
 echo ""
-
-# -------------------------------------------------
-# 3. Ejecutar SQL de análisis
-# -------------------------------------------------
-
 echo "======================================"
-echo " Ejecutando SQL"
+echo " Ejecutando SQL de análisis"
 echo "======================================"
 echo ""
 
 for SQL_FILE in "${SQL_FILES[@]}"; do
-  if [ ! -f "$SQL_FILE" ]; then
-    echo "ERROR: No existe $SQL_FILE"
-    unset PGPASSWORD
-    exit 1
-  fi
-
   echo "Ejecutando:"
   echo "$SQL_FILE"
   echo ""
@@ -246,7 +378,7 @@ for SQL_FILE in "${SQL_FILES[@]}"; do
 done
 
 # -------------------------------------------------
-# 4. Verificar vistas importantes
+# 6. Verificar resultados
 # -------------------------------------------------
 
 echo "======================================"
@@ -261,15 +393,41 @@ psql \
   -d "$DB_NAME" \
   -c "SELECT COUNT(*) AS high_buildings_near_green FROM analysis.high_buildings_near_green_points;" \
   -c "SELECT * FROM analysis.parcel_fos_summary;" \
+  -c "SELECT * FROM analysis.parcel_far_summary;" \
   -c "SELECT COUNT(*) AS parcels_clean FROM analysis.parcels_clean_mat;" \
   -c "SELECT COUNT(*) AS parcel_fos FROM analysis.parcel_fos_mat;" \
-  -c "SELECT COUNT(*) AS building_parcel_coverage FROM analysis.building_parcel_coverage_mat;"
+  -c "SELECT COUNT(*) AS parcel_far FROM analysis.parcel_far_mat;" \
+  -c "SELECT COUNT(*) AS building_parcel_coverage FROM analysis.building_parcel_coverage_mat;" \
+  -c "SELECT * FROM analysis.shadow_risk_green_summary;" \
+  -c "SELECT COUNT(*) AS shadow_risk_green FROM analysis.shadow_risk_green_mat;" \
+  -c "SELECT COUNT(*) AS high_shadow_risk_green FROM analysis.high_shadow_risk_green_points;"
 
 echo ""
 
 # -------------------------------------------------
-# 5. GeoServer workspace/datastore
+# 7. GeoServer
 # -------------------------------------------------
+
+if [ "$SKIP_GEOSERVER" = "1" ]; then
+  echo "======================================"
+  echo " GeoServer omitido"
+  echo "======================================"
+  echo ""
+  echo "Se omitieron la publicacion de capas y la verificacion WFS."
+  unset PGPASSWORD CITYDB_PASSWORD
+  echo ""
+  echo "======================================"
+  echo " Proceso terminado"
+  echo "======================================"
+  echo ""
+  echo "Tiles:"
+  echo "- Completo: $FULL_TILES_DIR"
+  echo "- Sin piso: $NO_FLOOR_TILES_DIR"
+  echo ""
+  echo "Abrir visor:"
+  echo "http://localhost:8003"
+  exit 0
+fi
 
 echo "======================================"
 echo " Preparando GeoServer"
@@ -279,7 +437,7 @@ echo ""
 if ! curl -s "$GEOSERVER_URL" > /dev/null; then
   echo "ERROR: GeoServer no está corriendo."
   echo "Levantalo con ./start_server.sh y corré este script de nuevo."
-  unset PGPASSWORD
+  unset PGPASSWORD CITYDB_PASSWORD
   exit 1
 fi
 
@@ -339,7 +497,7 @@ curl -s -u "$GEOSERVER_USER:$GEOSERVER_PASSWORD" \
 echo ""
 
 # -------------------------------------------------
-# 6. Publicar capas
+# 8. Publicar capas
 # -------------------------------------------------
 
 echo "======================================"
@@ -347,8 +505,35 @@ echo " Publicando capas"
 echo "======================================"
 echo ""
 
+delete_layer_everywhere() {
+  local LAYER_NAME="$1"
+
+  echo "Limpiando publicación vieja de: $LAYER_NAME"
+
+  # Borra la capa publicada si existe.
+  curl -s -u "$GEOSERVER_USER:$GEOSERVER_PASSWORD" \
+    -X DELETE \
+    "$GEOSERVER_URL/rest/layers/$WORKSPACE:$LAYER_NAME?recurse=true" >/dev/null || true
+
+  # Borra featuretype del datastore nuevo si existe.
+  curl -s -u "$GEOSERVER_USER:$GEOSERVER_PASSWORD" \
+    -X DELETE \
+    "$GEOSERVER_URL/rest/workspaces/$WORKSPACE/datastores/$DATASTORE/featuretypes/$LAYER_NAME?recurse=true" >/dev/null || true
+
+  # Borra featuretype de datastores viejos comunes, por si quedó apuntando mal.
+  curl -s -u "$GEOSERVER_USER:$GEOSERVER_PASSWORD" \
+    -X DELETE \
+    "$GEOSERVER_URL/rest/workspaces/$WORKSPACE/datastores/citydb_test/featuretypes/$LAYER_NAME?recurse=true" >/dev/null || true
+
+  curl -s -u "$GEOSERVER_USER:$GEOSERVER_PASSWORD" \
+    -X DELETE \
+    "$GEOSERVER_URL/rest/workspaces/$WORKSPACE/datastores/citydb_analysis/featuretypes/$LAYER_NAME?recurse=true" >/dev/null || true
+}
+
 publish_layer() {
   local LAYER_NAME="$1"
+
+  delete_layer_everywhere "$LAYER_NAME"
 
   echo "Publicando: $LAYER_NAME"
 
@@ -360,10 +545,8 @@ publish_layer() {
     -d "{
       \"featureType\": {
         \"name\": \"$LAYER_NAME\",
-        \"nativeName\": \"$LAYER_NAME\",
         \"title\": \"$LAYER_NAME\",
         \"srs\": \"EPSG:4326\",
-        \"nativeCRS\": \"EPSG:4326\",
         \"enabled\": true
       }
     }" \
@@ -371,6 +554,11 @@ publish_layer() {
 
   echo "$RESPONSE"
   echo ""
+
+  if ! echo "$RESPONSE" | grep -q "HTTP_STATUS:201"; then
+    echo "ADVERTENCIA: GeoServer no respondió 201 al publicar $LAYER_NAME."
+    echo "Si ya existía una capa vieja, fue eliminada arriba; revisá el mensaje anterior."
+  fi
 }
 
 for LAYER in "${LAYERS[@]}"; do
@@ -378,7 +566,7 @@ for LAYER in "${LAYERS[@]}"; do
 done
 
 # -------------------------------------------------
-# 7. Recargar y verificar WFS
+# 9. Recargar y verificar WFS
 # -------------------------------------------------
 
 echo "======================================"
@@ -407,12 +595,16 @@ for LAYER in "${LAYERS[@]}"; do
   rm -f "$WFS_RESPONSE_FILE"
 done
 
-unset PGPASSWORD
+unset PGPASSWORD CITYDB_PASSWORD
 
 echo ""
 echo "======================================"
 echo " Proceso terminado"
 echo "======================================"
+echo ""
+echo "Tiles:"
+echo "- Completo: $FULL_TILES_DIR"
+echo "- Sin piso: $NO_FLOOR_TILES_DIR"
 echo ""
 echo "Abrir visor:"
 echo "http://localhost:8003"

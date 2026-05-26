@@ -122,6 +122,15 @@ def create_tileset(args, output_path=None, max_features_per_tile=None, whrs=None
 
 def tile(args):
     # print(args.separate_tilesets)
+    exclude_classes = getattr(args, "exclude_objectclass", [])
+    excluded_whrs = None
+    if exclude_classes:
+        escaped = [cls.replace("'", "''") for cls in exclude_classes]
+        class_list = ", ".join([f"'{cls}'" for cls in escaped])
+        excluded_whrs = WhereElements(
+            WhereElement(condition=f"oc.classname NOT IN ({class_list})")
+        )
+
     if args.separate_tilesets is not None:
         if args.separate_tilesets == "objectclass":
             advises = read_yaml(get_shared_folder_path(), "advise.yml")
@@ -153,4 +162,4 @@ def tile(args):
             custom_path = os.path.join(get_shared_folder_path(), args.output_folder)
             advises = read_yaml(get_shared_folder_path(), "advise.yml")
             tileset_path = custom_path
-        create_tileset(args, output_path=tileset_path, max_features_per_tile=advises["max_features"])
+        create_tileset(args, output_path=tileset_path, max_features_per_tile=advises["max_features"], whrs=excluded_whrs)

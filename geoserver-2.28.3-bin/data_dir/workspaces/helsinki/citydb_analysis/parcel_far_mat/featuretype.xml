@@ -1,0 +1,41 @@
+<featureType>
+  <id>FeatureTypeInfoImpl--486c3543:19e618c610c:-752c</id>
+  <name>parcel_far_mat</name>
+  <nativeName>parcel_far_mat</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl-ad77682:19e37a764fe:-7fff</id>
+  </namespace>
+  <title>parcel_far_mat</title>
+  <keywords>
+    <string>features</string>
+    <string>parcel_far_mat</string>
+  </keywords>
+  <srs>EPSG:4326</srs>
+  <nativeBoundingBox>
+    <minx>24.884357452392578</minx>
+    <maxx>25.008792877197266</maxx>
+    <miny>60.081756591796875</miny>
+    <maxy>60.197383880615234</maxy>
+    <crs>EPSG:4326</crs>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>24.884357452392578</minx>
+    <maxx>25.008792877197266</maxx>
+    <miny>60.081756591796875</miny>
+    <maxy>60.197383880615234</maxy>
+    <crs>EPSG:4326</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl--486c3543:19e618c610c:-753b</id>
+  </store>
+  <serviceConfiguration>false</serviceConfiguration>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>

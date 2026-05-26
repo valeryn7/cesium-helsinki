@@ -17,11 +17,13 @@ ORDEN RECOMENDADO PARA LEVANTAR TODO
 
    Ese archivo explica cómo traer el WFS necesario y guardarlo en la base de datos.
 
-5. Ejecutar el análisis y publicación en GeoServer:
+5. No hace falta ejecutar un script aparte para análisis/publicación.
 
-   ./run_analysis_and_publish.sh
+   El comando:
 
-   Este script corre los SQL y publica las capas en GeoServer.
+   ./import_gml_and_generate.sh
+
+   ya corre los SQL de análisis y publica las capas en GeoServer.
 
 6. Levantar el servidor:
 

@@ -1,0 +1,16 @@
+<layer>
+  <name>parcel_far_mat</name>
+  <id>LayerInfoImpl--486c3543:19e618c610c:-752b</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--570ae188:124761b8d78:-7fe0</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--486c3543:19e618c610c:-752c</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+  <dateCreated>2026-05-26 02:32:28.269 UTC</dateCreated>
+</layer>
