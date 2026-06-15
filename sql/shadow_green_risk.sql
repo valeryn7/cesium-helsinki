@@ -112,7 +112,7 @@ intersections AS (
     s.source_id,
     s.height_m,
     s.height_category,
-    g.id AS green_id,
+    g.gid AS green_id,
     s.sun_azimuth_deg,
     s.sun_elevation_deg,
     s.shadow_azimuth_deg,

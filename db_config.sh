@@ -7,7 +7,7 @@
 : "${DB_PORT:=5432}"
 : "${DB_NAME:=citydb_test}"
 : "${DB_SCHEMA:=citydb}"
-: "${DB_USER:=valerynater}"
+: "${DB_USER:=joaquin}"
 : "${DB_PASSWORD:=}"
 
 export DB_HOST

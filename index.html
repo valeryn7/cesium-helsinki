@@ -312,6 +312,156 @@
         width: auto;
       }
     }
+
+    .params-toggle {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .params-toggle:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    #paramsPanel {
+      display: none;
+      margin-top: 8px;
+    }
+
+    #paramsPanel.open {
+      display: block;
+    }
+
+    .param-group {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .param-group-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: rgba(255, 255, 255, 0.5);
+      margin-bottom: 8px;
+    }
+
+    .param-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .param-label {
+      font-size: 11.5px;
+      color: rgba(255, 255, 255, 0.75);
+      min-width: 100px;
+    }
+
+    .param-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.2);
+      outline: none;
+    }
+
+    .param-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #38bdf8;
+      cursor: pointer;
+    }
+
+    .param-slider::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #38bdf8;
+      cursor: pointer;
+      border: none;
+    }
+
+    .param-value {
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+      min-width: 40px;
+      text-align: right;
+    }
+
+    .color-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+
+    .color-picker-wrap {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .color-picker-wrap input[type="color"] {
+      width: 22px;
+      height: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      padding: 0;
+      cursor: pointer;
+      background: none;
+    }
+
+    .color-picker-wrap input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+
+    .color-picker-wrap input[type="color"]::-webkit-color-swatch {
+      border: none;
+      border-radius: 3px;
+    }
+
+    .cql-indicator {
+      font-size: 10px;
+      color: rgba(250, 204, 21, 0.7);
+      margin-top: 2px;
+    }
+
+    .btn-reset {
+      width: 100%;
+      padding: 8px;
+      margin-top: 6px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .btn-reset:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
   </style>
 </head>
 
@@ -358,37 +508,166 @@
     <div id="analysisControls"></div>
 
     <div class="group-title">Leyenda Green Spaces</div>
-    <div class="legend">
-      <div class="legend-item"><span class="legend-box" style="background:#22c55e;"></span> Espacio verde cercano</div>
-      <div class="legend-item"><span class="legend-box" style="background:#e74c3c;"></span> Edificio muy alto</div>
-      <div class="legend-item"><span class="legend-box" style="background:#f39c12;"></span> Edificio alto</div>
-      <div class="legend-item"><span class="legend-box" style="background:#3498db;"></span> Edificio medio</div>
-      <div class="legend-item"><span class="legend-box" style="background:#95a5a6;"></span> Edificio bajo</div>
-      <div class="legend-item"><span class="legend-box" style="background:#ef4444;"></span> Alto cerca de verde</div>
+    <div id="legendGreen" class="legend">
+      <div class="legend-item"><span class="legend-box" id="lgGreen" style="background:#22c55e;"></span> Espacio verde cercano</div>
+      <div class="legend-item"><span class="legend-box" id="lgMuyAlto" style="background:#e74c3c;"></span> Edificio muy alto</div>
+      <div class="legend-item"><span class="legend-box" id="lgAlto" style="background:#f39c12;"></span> Edificio alto</div>
+      <div class="legend-item"><span class="legend-box" id="lgMedio" style="background:#3498db;"></span> Edificio medio</div>
+      <div class="legend-item"><span class="legend-box" id="lgBajo" style="background:#95a5a6;"></span> Edificio bajo</div>
+      <div class="legend-item"><span class="legend-box" id="lgHighNearGreen" style="background:#ef4444;"></span> Alto cerca de verde</div>
     </div>
 
     <div class="group-title">Leyenda sombra sobre parques</div>
-    <div class="legend">
-      <div class="legend-item"><span class="legend-box" style="background:#7f1d1d;"></span> Riesgo muy alto</div>
-      <div class="legend-item"><span class="legend-box" style="background:#ef4444;"></span> Riesgo alto</div>
-      <div class="legend-item"><span class="legend-box" style="background:#f97316;"></span> Riesgo medio</div>
-      <div class="legend-item"><span class="legend-box" style="background:#facc15;"></span> Riesgo bajo</div>
+    <div id="legendShadow" class="legend">
+      <div class="legend-item"><span class="legend-box" id="lgShadowVH" style="background:#7f1d1d;"></span> Riesgo muy alto</div>
+      <div class="legend-item"><span class="legend-box" id="lgShadowH" style="background:#ef4444;"></span> Riesgo alto</div>
+      <div class="legend-item"><span class="legend-box" id="lgShadowM" style="background:#f97316;"></span> Riesgo medio</div>
+      <div class="legend-item"><span class="legend-box" id="lgShadowL" style="background:#facc15;"></span> Riesgo bajo</div>
     </div>
 
     <div class="group-title">Leyenda FOS</div>
-    <div class="legend">
-      <div class="legend-item"><span class="legend-box" style="background:#ef4444;"></span> FOS alto</div>
-      <div class="legend-item"><span class="legend-box" style="background:#f97316;"></span> FOS medio</div>
-      <div class="legend-item"><span class="legend-box" style="background:#22c55e;"></span> FOS bajo</div>
-      <div class="legend-item"><span class="legend-box" style="background:#94a3b8;"></span> Parcela vacía</div>
+    <div id="legendFos" class="legend">
+      <div class="legend-item"><span class="legend-box" id="lgFosH" style="background:#ef4444;"></span> FOS alto</div>
+      <div class="legend-item"><span class="legend-box" id="lgFosM" style="background:#f97316;"></span> FOS medio</div>
+      <div class="legend-item"><span class="legend-box" id="lgFosL" style="background:#22c55e;"></span> FOS bajo</div>
+      <div class="legend-item"><span class="legend-box" id="lgFosE" style="background:#94a3b8;"></span> Parcela vacía</div>
     </div>
 
     <div class="group-title">Leyenda FAR / densidad</div>
-    <div class="legend">
-      <div class="legend-item"><span class="legend-box" style="background:#7f1d1d;"></span> FAR alto ≥ 3.0</div>
-      <div class="legend-item"><span class="legend-box" style="background:#f97316;"></span> FAR medio ≥ 1.5</div>
-      <div class="legend-item"><span class="legend-box" style="background:#8b5cf6;"></span> FAR bajo</div>
-      <div class="legend-item"><span class="legend-box" style="background:#94a3b8;"></span> Sin edificios</div>
+    <div id="legendFar" class="legend">
+      <div class="legend-item"><span class="legend-box" id="lgFarH" style="background:#7f1d1d;"></span> FAR alto ≥ 3.0</div>
+      <div class="legend-item"><span class="legend-box" id="lgFarM" style="background:#f97316;"></span> FAR medio ≥ 1.5</div>
+      <div class="legend-item"><span class="legend-box" id="lgFarL" style="background:#8b5cf6;"></span> FAR bajo</div>
+      <div class="legend-item"><span class="legend-box" id="lgFarE" style="background:#94a3b8;"></span> Sin edificios</div>
+    </div>
+
+    <button class="params-toggle" id="paramsToggle">Parámetros</button>
+
+    <div id="paramsPanel">
+      <div class="param-group">
+        <div class="param-group-title">Altura edificios</div>
+        <div class="param-row">
+          <span class="param-label">Muy alto ≥</span>
+          <input type="range" class="param-slider" id="paramHeightMuyAlto" min="0" max="80" value="40" step="1" />
+          <span class="param-value" id="paramValHeightMuyAlto">40</span><span style="font-size:11px;color:rgba(255,255,255,0.5);">m</span>
+        </div>
+        <div class="param-row">
+          <span class="param-label">Alto ≥</span>
+          <input type="range" class="param-slider" id="paramHeightAlto" min="0" max="60" value="25" step="1" />
+          <span class="param-value" id="paramValHeightAlto">25</span><span style="font-size:11px;color:rgba(255,255,255,0.5);">m</span>
+        </div>
+        <div class="param-row">
+          <span class="param-label">Medio ≥</span>
+          <input type="range" class="param-slider" id="paramHeightMedio" min="0" max="30" value="12" step="1" />
+          <span class="param-value" id="paramValHeightMedio">12</span><span style="font-size:11px;color:rgba(255,255,255,0.5);">m</span>
+        </div>
+        <div class="color-row">
+          <div class="color-picker-wrap">Muy alto <input type="color" id="colorMuyAlto" value="#e74c3c" /></div>
+          <div class="color-picker-wrap">Alto <input type="color" id="colorAlto" value="#f39c12" /></div>
+          <div class="color-picker-wrap">Medio <input type="color" id="colorMedio" value="#3498db" /></div>
+          <div class="color-picker-wrap">Bajo <input type="color" id="colorBajo" value="#95a5a6" /></div>
+        </div>
+      </div>
+
+      <div class="param-group">
+        <div class="param-group-title">Filtro verde cercano</div>
+        <div class="param-row">
+          <span class="param-label">Altura mínima</span>
+          <input type="range" class="param-slider" id="paramNearMinHeight" min="0" max="80" value="25" step="1" />
+          <span class="param-value" id="paramValNearMinHeight">25</span><span style="font-size:11px;color:rgba(255,255,255,0.5);">m</span>
+        </div>
+        <div class="param-row">
+          <span class="param-label">Distancia máxima</span>
+          <input type="range" class="param-slider" id="paramNearMaxDist" min="0" max="500" value="100" step="5" />
+          <span class="param-value" id="paramValNearMaxDist">100</span><span style="font-size:11px;color:rgba(255,255,255,0.5);">m</span>
+        </div>
+      </div>
+
+      <div class="param-group">
+        <div class="param-group-title">FOS</div>
+        <div class="param-row">
+          <span class="param-label">HIGH &gt;</span>
+          <input type="range" class="param-slider" id="paramFosHigh" min="0" max="100" value="60" step="1" />
+          <span class="param-value" id="paramValFosHigh">60</span><span style="font-size:11px;color:rgba(255,255,255,0.5);">%</span>
+        </div>
+        <div class="param-row">
+          <span class="param-label">MEDIUM &gt;</span>
+          <input type="range" class="param-slider" id="paramFosMedium" min="0" max="100" value="40" step="1" />
+          <span class="param-value" id="paramValFosMedium">40</span><span style="font-size:11px;color:rgba(255,255,255,0.5);">%</span>
+        </div>
+        <div class="color-row">
+          <div class="color-picker-wrap">HIGH <input type="color" id="colorFosHigh" value="#ef4444" /></div>
+          <div class="color-picker-wrap">MEDIUM <input type="color" id="colorFosMedium" value="#f97316" /></div>
+          <div class="color-picker-wrap">LOW <input type="color" id="colorFosLow" value="#22c55e" /></div>
+          <div class="color-picker-wrap">EMPTY <input type="color" id="colorFosEmpty" value="#94a3b8" /></div>
+        </div>
+      </div>
+
+      <div class="param-group">
+        <div class="param-group-title">FAR</div>
+        <div class="param-row">
+          <span class="param-label">HIGH ≥</span>
+          <input type="range" class="param-slider" id="paramFarHigh" min="0" max="10" value="3" step="0.1" />
+          <span class="param-value" id="paramValFarHigh">3.0</span>
+        </div>
+        <div class="param-row">
+          <span class="param-label">MEDIUM ≥</span>
+          <input type="range" class="param-slider" id="paramFarMedium" min="0" max="5" value="1.5" step="0.1" />
+          <span class="param-value" id="paramValFarMedium">1.5</span>
+        </div>
+        <div class="color-row">
+          <div class="color-picker-wrap">HIGH <input type="color" id="colorFarHigh" value="#7f1d1d" /></div>
+          <div class="color-picker-wrap">MEDIUM <input type="color" id="colorFarMedium" value="#f97316" /></div>
+          <div class="color-picker-wrap">LOW <input type="color" id="colorFarLow" value="#8b5cf6" /></div>
+          <div class="color-picker-wrap">EMPTY <input type="color" id="colorFarEmpty" value="#94a3b8" /></div>
+        </div>
+      </div>
+
+      <div class="param-group">
+        <div class="param-group-title">Riesgo de sombra</div>
+        <div class="param-row">
+          <span class="param-label">MUY ALTO ≥</span>
+          <input type="range" class="param-slider" id="paramShadowVH" min="0" max="100" value="20" step="1" />
+          <span class="param-value" id="paramValShadowVH">20</span><span style="font-size:11px;color:rgba(255,255,255,0.5);">%</span>
+        </div>
+        <div class="param-row">
+          <span class="param-label">ALTO ≥</span>
+          <input type="range" class="param-slider" id="paramShadowHigh" min="0" max="100" value="10" step="1" />
+          <span class="param-value" id="paramValShadowHigh">10</span><span style="font-size:11px;color:rgba(255,255,255,0.5);">%</span>
+        </div>
+        <div class="param-row">
+          <span class="param-label">MEDIO ≥</span>
+          <input type="range" class="param-slider" id="paramShadowMedium" min="0" max="100" value="3" step="1" />
+          <span class="param-value" id="paramValShadowMedium">3</span><span style="font-size:11px;color:rgba(255,255,255,0.5);">%</span>
+        </div>
+        <div class="color-row">
+          <div class="color-picker-wrap">MUY ALTO <input type="color" id="colorShadowVH" value="#7f1d1d" /></div>
+          <div class="color-picker-wrap">ALTO <input type="color" id="colorShadowHigh" value="#ef4444" /></div>
+          <div class="color-picker-wrap">MEDIO <input type="color" id="colorShadowMedium" value="#f97316" /></div>
+          <div class="color-picker-wrap">BAJO <input type="color" id="colorShadowLow" value="#facc15" /></div>
+        </div>
+      </div>
+
+      <div class="param-group">
+        <div class="param-group-title">Visual</div>
+        <div class="param-row">
+          <span class="param-label">Opacidad polígonos</span>
+          <input type="range" class="param-slider" id="paramOpacity" min="0" max="100" value="30" step="1" />
+          <span class="param-value" id="paramValOpacity">30</span><span style="font-size:11px;color:rgba(255,255,255,0.5);">%</span>
+        </div>
+        <div class="param-row">
+          <span class="param-label">Tamaño punto</span>
+          <input type="range" class="param-slider" id="paramPointSize" min="3" max="30" value="9" step="1" />
+          <span class="param-value" id="paramValPointSize">9</span><span style="font-size:11px;color:rgba(255,255,255,0.5);">px</span>
+        </div>
+        <div class="param-row">
+          <span class="param-label">Ancho borde</span>
+          <input type="range" class="param-slider" id="paramOutlineWidth" min="0" max="6" value="2" step="0.5" />
+          <span class="param-value" id="paramValOutlineWidth">2</span><span style="font-size:11px;color:rgba(255,255,255,0.5);">px</span>
+        </div>
+      </div>
+
+      <button class="btn-reset" id="btnResetParams">Restaurar valores</button>
     </div>
 
     <div class="hint">
@@ -421,15 +700,76 @@
     const SHADOW_SCENARIO_AZIMUTH_DEG = 180;
     const SHADOW_SCENARIO_ELEVATION_DEG = 6;
 
-    function wfsUrl(typeName) {
-      return (
-        GEOSERVER_BASE +
+    let params = restoreParams();
+
+    function wfsUrl(typeName, cqlFilter) {
+      let url = GEOSERVER_BASE +
         "?service=WFS" +
         "&version=1.0.0" +
         "&request=GetFeature" +
         "&typeName=helsinki:" + typeName +
-        "&outputFormat=application/json"
-      );
+        "&outputFormat=application/json";
+      if (cqlFilter) {
+        url += "&cql_filter=" + encodeURIComponent(cqlFilter);
+      }
+      return url;
+    }
+
+    function defaultParams() {
+      return {
+        heightMuyAlto: 40,
+        heightAlto: 25,
+        heightMedio: 12,
+        colorMuyAlto: "#e74c3c",
+        colorAlto: "#f39c12",
+        colorMedio: "#3498db",
+        colorBajo: "#95a5a6",
+        nearMinHeight: 25,
+        nearMaxDistance: 100,
+        fosHigh: 60,
+        fosMedium: 40,
+        colorFosHigh: "#ef4444",
+        colorFosMedium: "#f97316",
+        colorFosLow: "#22c55e",
+        colorFosEmpty: "#94a3b8",
+        farHigh: 3.0,
+        farMedium: 1.5,
+        colorFarHigh: "#7f1d1d",
+        colorFarMedium: "#f97316",
+        colorFarLow: "#8b5cf6",
+        colorFarEmpty: "#94a3b8",
+        shadowVH: 20,
+        shadowHigh: 10,
+        shadowMedium: 3,
+        colorShadowVH: "#7f1d1d",
+        colorShadowHigh: "#ef4444",
+        colorShadowMedium: "#f97316",
+        colorShadowLow: "#facc15",
+        visualOpacity: 30,
+        visualPointSize: 9,
+        visualOutlineWidth: 2
+      };
+    }
+
+    function restoreParams() {
+      try {
+        const saved = localStorage.getItem("helsinki3d_params");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          const def = defaultParams();
+          for (const key of Object.keys(def)) {
+            if (parsed[key] === undefined) parsed[key] = def[key];
+          }
+          return parsed;
+        }
+      } catch (e) {}
+      return defaultParams();
+    }
+
+    function saveParams() {
+      try {
+        localStorage.setItem("helsinki3d_params", JSON.stringify(params));
+      } catch (e) {}
     }
 
     const viewer = new Cesium.Viewer("cesiumContainer", {
@@ -501,11 +841,12 @@
             id: "heightPoints",
             typeName: "building_height_points_mat",
             title: "Edificios por altura",
-            desc: "Puntos clasificados por altura",
+            desc: "Puntos clasificados por altura (umbrales configurables)",
             color: "#3498db",
             defaultShow: false,
             geometry: "point",
-            styleBy: "height_category",
+            styleBy: "height_m",
+            valueField: "height_m",
             question: "¿Qué edificios hay y qué altura estimada tienen?",
             featureType: "Edificio"
           },
@@ -517,19 +858,21 @@
             color: "#38bdf8",
             defaultShow: false,
             geometry: "point",
-            styleBy: "height_category",
+            styleBy: "height_m",
+            valueField: "height_m",
             question: "¿Cuál es el espacio verde más cercano a cada edificio?",
             featureType: "Edificio"
           },
           {
             id: "highNearGreen",
-            typeName: "high_buildings_near_green_points",
+            typeName: "buildings_near_green_points_mat",
             title: "Altos cerca de verde",
-            desc: "Altura ≥ 25 m y distancia ≤ 100 m",
+            desc: "Con filtros configurables de altura y distancia",
             color: "#ef4444",
             defaultShow: false,
             geometry: "point",
             styleBy: "fixed",
+            cqlFilter: "height_m>=__minHeight__ AND distance_to_green_m<=__maxDistance__",
             question: "¿Cuántos edificios altos están próximos a espacios verdes?",
             featureType: "Edificio alto cerca de verde"
           },
@@ -541,19 +884,22 @@
             color: "#7f1d1d",
             defaultShow: false,
             geometry: "polygon",
-            styleBy: "shadow_risk_level",
+            styleBy: "shadow_risk_score",
+            valueField: "shadow_risk_score",
             question: "¿Qué edificios altos cercanos a parques podrían generar mayor riesgo de sombra?",
             featureType: "Edificio con riesgo de sombra"
           },
           {
             id: "highShadowRisk",
-            typeName: "high_shadow_risk_green_points",
+            typeName: "shadow_risk_green_mat",
             title: "Sombra alta / muy alta",
-            desc: "Sectores verdes con cobertura de sombra HIGH o VERY_HIGH",
+            desc: "Sectores verdes con cobertura de sombra sobre umbral configurable",
             color: "#ef4444",
             defaultShow: false,
             geometry: "polygon",
-            styleBy: "shadow_risk_level",
+            styleBy: "shadow_risk_score",
+            valueField: "shadow_risk_score",
+            cqlFilter: "shadow_risk_score>=__shadowThreshold__",
             question: "¿Qué edificios tienen riesgo alto de sombra sobre espacios verdes?",
             featureType: "Edificio con alto riesgo de sombra"
           }
@@ -578,11 +924,12 @@
             id: "parcelFos",
             typeName: "parcel_fos_mat",
             title: "FOS por parcela",
-            desc: "Porcentaje de parcela ocupado por edificios",
+            desc: "Porcentaje de parcela ocupado por edificios (umbrales configurables)",
             color: "#f97316",
             defaultShow: false,
             geometry: "polygon",
-            styleBy: "fos_level",
+            styleBy: "fos_pct",
+            valueField: "fos_pct",
             question: "¿Qué porcentaje de cada parcela está ocupado por edificios?",
             featureType: "Parcela con FOS"
           },
@@ -590,11 +937,12 @@
             id: "parcelFar",
             typeName: "parcel_far_mat",
             title: "FAR / densidad por parcela",
-            desc: "Superficie construida estimada sobre área de parcela",
+            desc: "Superficie construida estimada sobre área de parcela (umbrales configurables)",
             color: "#8b5cf6",
             defaultShow: false,
             geometry: "polygon",
-            styleBy: "far_level",
+            styleBy: "far_ratio",
+            valueField: "far_ratio",
             question: "¿Qué parcelas tienen mayor densidad construida estimada?",
             featureType: "Parcela con FAR"
           },
@@ -602,11 +950,12 @@
             id: "buildingParcelCoverage",
             typeName: "building_parcel_coverage_mat",
             title: "Edificio vs parcela",
-            desc: "Cada edificio asociado a su parcela principal",
+            desc: "Cada edificio asociado a su parcela principal (umbrales configurables)",
             color: "#38bdf8",
             defaultShow: false,
             geometry: "polygon",
-            styleBy: "coverage_level",
+            styleBy: "building_parcel_coverage_pct",
+            valueField: "building_parcel_coverage_pct",
             question: "¿Qué porcentaje de la parcela ocupa cada edificio?",
             featureType: "Edificio dentro de parcela"
           }
@@ -614,43 +963,51 @@
       }
     ];
 
-    function setStatus(message, type = "loading") {
+    function classifyHeight(heightM) {
+      if (heightM == null) return { level: "bajo", color: params.colorBajo };
+      if (heightM >= params.heightMuyAlto) return { level: "muy_alto", color: params.colorMuyAlto };
+      if (heightM >= params.heightAlto) return { level: "alto", color: params.colorAlto };
+      if (heightM >= params.heightMedio) return { level: "medio", color: params.colorMedio };
+      return { level: "bajo", color: params.colorBajo };
+    }
+
+    function classifyFos(fosPct) {
+      if (fosPct == null) return { level: "EMPTY", color: params.colorFosEmpty };
+      if (fosPct >= params.fosHigh) return { level: "HIGH", color: params.colorFosHigh };
+      if (fosPct >= params.fosMedium) return { level: "MEDIUM", color: params.colorFosMedium };
+      if (fosPct > 0) return { level: "LOW", color: params.colorFosLow };
+      return { level: "EMPTY", color: params.colorFosEmpty };
+    }
+
+    function classifyFar(farRatio) {
+      if (farRatio == null || farRatio === 0) return { level: "EMPTY", color: params.colorFarEmpty };
+      if (farRatio >= params.farHigh) return { level: "HIGH", color: params.colorFarHigh };
+      if (farRatio >= params.farMedium) return { level: "MEDIUM", color: params.colorFarMedium };
+      return { level: "LOW", color: params.colorFarLow };
+    }
+
+    function classifyShadowRisk(score) {
+      if (score == null) return { level: "LOW", color: params.colorShadowLow };
+      const pct = score * 100;
+      if (pct >= params.shadowVH) return { level: "VERY_HIGH", color: params.colorShadowVH };
+      if (pct >= params.shadowHigh) return { level: "HIGH", color: params.colorShadowHigh };
+      if (pct >= params.shadowMedium) return { level: "MEDIUM", color: params.colorShadowMedium };
+      return { level: "LOW", color: params.colorShadowLow };
+    }
+
+    function classifyValue(value, styleBy) {
+      if (styleBy === "height_m") return classifyHeight(value);
+      if (styleBy === "fos_pct" || styleBy === "building_parcel_coverage_pct") return classifyFos(value);
+      if (styleBy === "far_ratio") return classifyFar(value);
+      if (styleBy === "shadow_risk_score") return classifyShadowRisk(value);
+      return null;
+    }
+
+    function setStatus(message, type) {
       statusText.textContent = message;
       statusDot.className = "dot";
       if (type === "ok") statusDot.classList.add("ok");
       if (type === "error") statusDot.classList.add("error");
-    }
-
-    function getCssColorForHeight(category) {
-      if (category === "muy_alto") return "#e74c3c";
-      if (category === "alto") return "#f39c12";
-      if (category === "medio") return "#3498db";
-      if (category === "bajo") return "#95a5a6";
-      return "#38bdf8";
-    }
-
-    function getCssColorForFos(level) {
-      if (level === "HIGH") return "#ef4444";
-      if (level === "MEDIUM") return "#f97316";
-      if (level === "LOW") return "#22c55e";
-      if (level === "EMPTY") return "#94a3b8";
-      return "#38bdf8";
-    }
-
-    function getCssColorForFar(level) {
-      if (level === "HIGH") return "#7f1d1d";
-      if (level === "MEDIUM") return "#f97316";
-      if (level === "LOW") return "#8b5cf6";
-      if (level === "EMPTY") return "#94a3b8";
-      return "#38bdf8";
-    }
-
-    function getCssColorForShadowRisk(level) {
-      if (level === "VERY_HIGH") return "#7f1d1d";
-      if (level === "HIGH") return "#ef4444";
-      if (level === "MEDIUM") return "#f97316";
-      if (level === "LOW") return "#facc15";
-      return "#38bdf8";
     }
 
     function getProperty(entity, name) {
@@ -659,8 +1016,8 @@
         : undefined;
     }
 
-    function formatValue(value, fallback = "-") {
-      if (value === undefined || value === null || value === "") return fallback;
+    function formatValue(value, fallback) {
+      if (value === undefined || value === null || value === "") return fallback || "-";
       return value;
     }
 
@@ -679,20 +1036,20 @@
           row.id = `row-${config.id}`;
           const markerClass = config.geometry === "point" ? "legend-point" : "legend-poly";
 
-          row.innerHTML = `
-            <div class="layer-info">
-              <span class="${markerClass}" style="background:${config.color};"></span>
-              <div>
-                <div class="layer-name">${config.title}</div>
-                <div class="layer-desc">${config.desc}</div>
-                <div class="layer-loading" id="loading-${config.id}">Cargando capa...</div>
-              </div>
-            </div>
-            <label class="switch">
-              <input id="toggle-${config.id}" type="checkbox" ${config.defaultShow ? "checked" : ""} />
-              <span class="slider"></span>
-            </label>
-          `;
+          row.innerHTML =
+            '<div class="layer-info">' +
+            '<span class="' + markerClass + '" style="background:' + config.color + ';"></span>' +
+            '<div>' +
+            '<div class="layer-name">' + config.title + '</div>' +
+            '<div class="layer-desc">' + config.desc + '</div>' +
+            '<div class="layer-loading" id="loading-' + config.id + '">Cargando capa...</div>' +
+            (config.cqlFilter ? '<div class="cql-indicator" id="cql-' + config.id + '">Filtro: ' + config.cqlFilter + '</div>' : '') +
+            '</div>' +
+            '</div>' +
+            '<label class="switch">' +
+            '<input id="toggle-' + config.id + '" type="checkbox" ' + (config.defaultShow ? "checked" : "") + ' />' +
+            '<span class="slider"></span>' +
+            '</label>';
 
           controls.appendChild(row);
         });
@@ -701,6 +1058,10 @@
 
     function allLayerConfigs() {
       return groups.flatMap((group) => group.layers);
+    }
+
+    function getConfig(id) {
+      return allLayerConfigs().find((c) => c.id === id);
     }
 
     function syncModelToggles() {
@@ -777,41 +1138,60 @@
       await viewer.zoomTo(noFloorTileset && noFloorTileset.show ? noFloorTileset : texturedTileset);
     }
 
-    async function loadAnalysisLayer(config, initialShow = config.defaultShow) {
-      const url = wfsUrl(config.typeName);
+    function computeCqlFilter(config) {
+      if (!config.cqlFilter) return null;
+      let filter = config.cqlFilter;
+      filter = filter.replace("__minHeight__", String(params.nearMinHeight));
+      filter = filter.replace("__maxDistance__", String(params.nearMaxDistance));
+      filter = filter.replace("__shadowThreshold__", String(params.shadowHigh / 100));
+      return filter;
+    }
 
-      console.group(`Cargando capa WFS: ${config.title}`);
+    function getCqlFilterDescription(config) {
+      const raw = config.cqlFilter;
+      if (!raw) return null;
+      if (config.id === "highNearGreen") {
+        return "Altura ≥ " + params.nearMinHeight + "m, Dist. ≤ " + params.nearMaxDistance + "m";
+      }
+      if (config.id === "highShadowRisk") {
+        return "Score ≥ " + (params.shadowHigh / 100).toFixed(2);
+      }
+      return raw;
+    }
+
+    async function loadAnalysisLayer(config, initialShow) {
+      if (initialShow === undefined) initialShow = config.defaultShow;
+      const cqlFilter = computeCqlFilter(config);
+      const url = wfsUrl(config.typeName, cqlFilter);
+
+      console.group("Cargando capa WFS: " + config.title);
       console.log("ID:", config.id);
       console.log("typeName:", config.typeName);
       console.log("URL:", url);
+      if (cqlFilter) console.log("CQL:", cqlFilter);
 
       let geojson;
 
       try {
         const response = await fetch(url);
-        console.log("HTTP status:", response.status, response.statusText);
-        console.log("Content-Type:", response.headers.get("content-type"));
+        console.log("HTTP status:", response.status);
 
         const text = await response.text();
 
         if (!response.ok) {
-          console.error("Respuesta HTTP incorrecta:", response.status, response.statusText);
-          console.error("Respuesta completa:", text);
-          throw new Error(`Falló ${config.typeName}: HTTP ${response.status}`);
+          console.error("Respuesta HTTP incorrecta:", response.status);
+          throw new Error("Falló " + config.typeName + ": HTTP " + response.status);
         }
 
         if (text.trim().startsWith("<")) {
           console.error("GeoServer devolvió XML en vez de JSON.");
-          console.error("Respuesta XML:", text);
-          throw new Error(`Falló ${config.typeName}: GeoServer devolvió XML`);
+          throw new Error("Falló " + config.typeName + ": GeoServer devolvió XML");
         }
 
         geojson = JSON.parse(text);
-        console.log("GeoJSON OK");
         console.log("Features:", geojson.features ? geojson.features.length : 0);
       } catch (error) {
-        console.error(`ERROR cargando capa: ${config.typeName}`);
-        console.error(error);
+        console.error("ERROR cargando capa:", config.typeName, error);
         console.groupEnd();
         throw { layerTitle: config.title, typeName: config.typeName, url, originalError: error };
       }
@@ -835,40 +1215,21 @@
 
         let colorCss = config.color;
 
-        if (config.styleBy === "height_category") {
-          colorCss = getCssColorForHeight(getProperty(entity, "height_category"));
-        }
-
-        if (config.styleBy === "fos_level") {
-          colorCss = getCssColorForFos(getProperty(entity, "fos_level"));
-        }
-
-        if (config.styleBy === "coverage_level") {
-          colorCss = getCssColorForFos(getProperty(entity, "coverage_level"));
-        }
-
-        if (config.styleBy === "far_level") {
-          colorCss = getCssColorForFar(getProperty(entity, "far_level"));
-        }
-
-        if (config.styleBy === "shadow_risk_level") {
-          colorCss = getCssColorForShadowRisk(getProperty(entity, "shadow_risk_level"));
+        if (config.styleBy && config.styleBy !== "fixed") {
+          const value = getProperty(entity, config.styleBy);
+          const result = classifyValue(value, config.styleBy);
+          if (result) {
+            colorCss = result.color;
+          }
         }
 
         const color = Cesium.Color.fromCssColorString(colorCss);
+        const alpha = params.visualOpacity / 100;
 
         if (entity.polygon) {
-          const alpha =
-            config.id === "green" ? 0.24 :
-            config.id === "parcelFos" ? 0.30 :
-            config.id === "parcelFar" ? 0.34 :
-            config.id === "buildingParcelCoverage" ? 0.26 :
-            config.id === "parcels" ? 0.16 :
-            0.30;
-
           entity.polygon.material = color.withAlpha(alpha);
           entity.polygon.outline = true;
-          entity.polygon.outlineColor = color.withAlpha(0.95);
+          entity.polygon.outlineColor = color.withAlpha(Math.min(1, alpha * 2.5));
 
           entity.polygon.height =
             config.id === "green" ? 0.6 :
@@ -882,13 +1243,9 @@
         if (entity.point || config.geometry === "point") {
           entity.point = new Cesium.PointGraphics({
             color,
-            pixelSize:
-              config.id === "shadowRisk" ? 11 :
-              config.id === "highShadowRisk" ? 13 :
-              config.id === "highNearGreen" ? 12 :
-              9,
+            pixelSize: params.visualPointSize,
             outlineColor: Cesium.Color.WHITE,
-            outlineWidth: 2,
+            outlineWidth: params.visualOutlineWidth,
             disableDepthTestDistance: Number.POSITIVE_INFINITY
           });
         }
@@ -897,6 +1254,59 @@
       loadedLayers[config.id] = ds;
       console.log("Capa cargada correctamente:", config.typeName);
       console.groupEnd();
+    }
+
+    function reclassifyLayer(layerId) {
+      const ds = loadedLayers[layerId];
+      if (!ds) return;
+      const config = getConfig(layerId);
+      if (!config) return;
+
+      ds.entities.values.forEach((entity) => {
+        let colorCss = config.color;
+
+        if (config.styleBy && config.styleBy !== "fixed") {
+          const value = getProperty(entity, config.styleBy);
+          const result = classifyValue(value, config.styleBy);
+          if (result) {
+            colorCss = result.color;
+          }
+        }
+
+        const color = Cesium.Color.fromCssColorString(colorCss);
+        const alpha = params.visualOpacity / 100;
+
+        if (entity.polygon) {
+          entity.polygon.material = color.withAlpha(alpha);
+          entity.polygon.outlineColor = color.withAlpha(Math.min(1, alpha * 2.5));
+        }
+
+        if (entity.point) {
+          entity.point.color = color;
+          entity.point.pixelSize = params.visualPointSize;
+          entity.point.outlineWidth = params.visualOutlineWidth;
+        }
+      });
+
+      refreshScene();
+    }
+
+    async function refetchLayer(config) {
+      if (!loadedLayers[config.id]) return;
+
+      const ds = loadedLayers[config.id];
+      ds.show = false;
+      viewer.dataSources.remove(ds, true);
+      delete loadedLayers[config.id];
+
+      const cqlFilter = computeCqlFilter(config);
+      const cqlEl = document.getElementById("cql-" + config.id);
+      if (cqlEl) {
+        cqlEl.textContent = "Filtro: " + getCqlFilterDescription(config);
+      }
+
+      await loadAnalysisLayer(config, true);
+      refreshScene();
     }
 
     function reportLayerFailure(layerError) {
@@ -909,10 +1319,11 @@
       console.error("======================================");
     }
 
-    function setLayerLoading(layerId, isLoading, message = "Cargando capa...") {
-      const row = document.getElementById(`row-${layerId}`);
-      const hint = document.getElementById(`loading-${layerId}`);
-      const toggle = document.getElementById(`toggle-${layerId}`);
+    function setLayerLoading(layerId, isLoading, message) {
+      if (message === undefined) message = "Cargando capa...";
+      const row = document.getElementById("row-" + layerId);
+      const hint = document.getElementById("loading-" + layerId);
+      const toggle = document.getElementById("toggle-" + layerId);
 
       if (row) {
         if (isLoading) {
@@ -932,7 +1343,7 @@
     }
 
     function bindAnalysisToggle(config) {
-      const toggle = document.getElementById(`toggle-${config.id}`);
+      const toggle = document.getElementById("toggle-" + config.id);
       if (!toggle) return;
 
       toggle.addEventListener("change", async (event) => {
@@ -952,15 +1363,15 @@
 
         if (!loadingLayers[config.id]) {
           setLayerLoading(config.id, true, "Cargando capa...");
-          setStatus(`Cargando capa: ${config.title}...`, "loading");
+          setStatus("Cargando capa: " + config.title + "...", "loading");
           loadingLayers[config.id] = loadAnalysisLayer(config, true)
             .then(() => {
-              setStatus(`Capa lista: ${config.title}`, "ok");
+              setStatus("Capa lista: " + config.title, "ok");
             })
             .catch((layerError) => {
               reportLayerFailure(layerError);
               toggle.checked = false;
-              setStatus(`Error cargando ${config.title}. Ver consola.`, "error");
+              setStatus("Error cargando " + config.title + ". Ver consola.", "error");
             })
             .finally(() => {
               setLayerLoading(config.id, false);
@@ -972,10 +1383,252 @@
       });
     }
 
+    function updateLegendColors() {
+      const el = document.getElementById("lgMuyAlto");
+      if (el) el.style.background = params.colorMuyAlto;
+      const el2 = document.getElementById("lgAlto");
+      if (el2) el2.style.background = params.colorAlto;
+      const el3 = document.getElementById("lgMedio");
+      if (el3) el3.style.background = params.colorMedio;
+      const el4 = document.getElementById("lgBajo");
+      if (el4) el4.style.background = params.colorBajo;
+
+      const el5 = document.getElementById("lgShadowVH");
+      if (el5) el5.style.background = params.colorShadowVH;
+      const el6 = document.getElementById("lgShadowH");
+      if (el6) el6.style.background = params.colorShadowHigh;
+      const el7 = document.getElementById("lgShadowM");
+      if (el7) el7.style.background = params.colorShadowMedium;
+      const el8 = document.getElementById("lgShadowL");
+      if (el8) el8.style.background = params.colorShadowLow;
+
+      const el9 = document.getElementById("lgFosH");
+      if (el9) el9.style.background = params.colorFosHigh;
+      const el10 = document.getElementById("lgFosM");
+      if (el10) el10.style.background = params.colorFosMedium;
+      const el11 = document.getElementById("lgFosL");
+      if (el11) el11.style.background = params.colorFosLow;
+      const el12 = document.getElementById("lgFosE");
+      if (el12) el12.style.background = params.colorFosEmpty;
+
+      const el13 = document.getElementById("lgFarH");
+      if (el13) el13.style.background = params.colorFarHigh;
+      const el14 = document.getElementById("lgFarM");
+      if (el14) el14.style.background = params.colorFarMedium;
+      const el15 = document.getElementById("lgFarL");
+      if (el15) el15.style.background = params.colorFarLow;
+      const el16 = document.getElementById("lgFarE");
+      if (el16) el16.style.background = params.colorFarEmpty;
+    }
+
+    function applyParams() {
+      updateLegendColors();
+
+      const layersToReclassify = ["heightPoints", "nearGreen", "shadowRisk",
+        "parcelFos", "parcelFar", "buildingParcelCoverage"];
+
+      if (loadedLayers["shadowRisk"]) {
+        layersToReclassify.push("highShadowRisk");
+      }
+
+      // Deduplicate
+      const unique = [...new Set(layersToReclassify)];
+      for (const layerId of unique) {
+        reclassifyLayer(layerId);
+      }
+
+      const highNearConfig = getConfig("highNearGreen");
+      if (highNearConfig && loadedLayers["highNearGreen"]) {
+        refetchLayer(highNearConfig);
+      }
+
+      const highShadowConfig = getConfig("highShadowRisk");
+      if (highShadowConfig && loadedLayers["highShadowRisk"]) {
+        refetchLayer(highShadowConfig);
+      }
+
+      saveParams();
+    }
+
+    function initParamSlider(id, paramKey, onChange) {
+      const input = document.getElementById(id);
+      const valSpan = document.getElementById(id.replace("param", "paramVal"));
+      if (!input) return;
+
+      input.addEventListener("input", function () {
+        const parsed = parseFloat(this.value);
+        params[paramKey] = parsed;
+        if (valSpan) valSpan.textContent = this.value;
+        if (onChange) onChange();
+      });
+
+      input.value = params[paramKey];
+      if (valSpan) valSpan.textContent = input.value;
+    }
+
+    function initColorPicker(id, paramKey) {
+      const input = document.getElementById(id);
+      if (!input) return;
+      input.value = params[paramKey];
+      input.addEventListener("input", function () {
+        params[paramKey] = this.value;
+        applyParams();
+      });
+    }
+
+    function initParamsPanel() {
+      initParamSlider("paramHeightMuyAlto", "heightMuyAlto", applyParams);
+      initParamSlider("paramHeightAlto", "heightAlto", applyParams);
+      initParamSlider("paramHeightMedio", "heightMedio", applyParams);
+
+      initParamSlider("paramNearMinHeight", "nearMinHeight", function () {
+        const highNear = getConfig("highNearGreen");
+        if (highNear && loadedLayers["highNearGreen"]) refetchLayer(highNear);
+        updateCqlIndicator();
+      });
+      initParamSlider("paramNearMaxDist", "nearMaxDistance", function () {
+        const highNear = getConfig("highNearGreen");
+        if (highNear && loadedLayers["highNearGreen"]) refetchLayer(highNear);
+        updateCqlIndicator();
+      });
+
+      initParamSlider("paramFosHigh", "fosHigh", applyParams);
+      initParamSlider("paramFosMedium", "fosMedium", applyParams);
+
+      initParamSlider("paramFarHigh", "farHigh", applyParams);
+      initParamSlider("paramFarMedium", "farMedium", applyParams);
+
+      initParamSlider("paramShadowVH", "shadowVH", applyParams);
+      initParamSlider("paramShadowHigh", "shadowHigh", function () {
+        applyParams();
+        const highShadow = getConfig("highShadowRisk");
+        if (highShadow && loadedLayers["highShadowRisk"]) refetchLayer(highShadow);
+        updateCqlIndicator();
+      });
+      initParamSlider("paramShadowMedium", "shadowMedium", applyParams);
+
+      initColorPicker("colorMuyAlto", "colorMuyAlto");
+      initColorPicker("colorAlto", "colorAlto");
+      initColorPicker("colorMedio", "colorMedio");
+      initColorPicker("colorBajo", "colorBajo");
+      initColorPicker("colorFosHigh", "colorFosHigh");
+      initColorPicker("colorFosMedium", "colorFosMedium");
+      initColorPicker("colorFosLow", "colorFosLow");
+      initColorPicker("colorFosEmpty", "colorFosEmpty");
+      initColorPicker("colorFarHigh", "colorFarHigh");
+      initColorPicker("colorFarMedium", "colorFarMedium");
+      initColorPicker("colorFarLow", "colorFarLow");
+      initColorPicker("colorFarEmpty", "colorFarEmpty");
+      initColorPicker("colorShadowVH", "colorShadowVH");
+      initColorPicker("colorShadowHigh", "colorShadowHigh");
+      initColorPicker("colorShadowMedium", "colorShadowMedium");
+      initColorPicker("colorShadowLow", "colorShadowLow");
+
+      initParamSlider("paramOpacity", "visualOpacity", function () {
+        for (const layerId of Object.keys(loadedLayers)) {
+          reclassifyLayer(layerId);
+        }
+      });
+      initParamSlider("paramPointSize", "visualPointSize", function () {
+        for (const layerId of Object.keys(loadedLayers)) {
+          reclassifyLayer(layerId);
+        }
+      });
+      initParamSlider("paramOutlineWidth", "visualOutlineWidth", function () {
+        for (const layerId of Object.keys(loadedLayers)) {
+          reclassifyLayer(layerId);
+        }
+      });
+
+      document.getElementById("btnResetParams").addEventListener("click", function () {
+        const def = defaultParams();
+        Object.assign(params, def);
+        syncParamsUI();
+        applyParams();
+        saveParams();
+      });
+
+      const toggle = document.getElementById("paramsToggle");
+      const panel = document.getElementById("paramsPanel");
+      toggle.addEventListener("click", function () {
+        panel.classList.toggle("open");
+        toggle.textContent = panel.classList.contains("open") ? "Ocultar parámetros" : "Parámetros";
+      });
+
+      updateCqlIndicator();
+    }
+
+    function syncParamsUI() {
+      const mapping = {
+        paramHeightMuyAlto: "heightMuyAlto",
+        paramHeightAlto: "heightAlto",
+        paramHeightMedio: "heightMedio",
+        paramNearMinHeight: "nearMinHeight",
+        paramNearMaxDist: "nearMaxDistance",
+        paramFosHigh: "fosHigh",
+        paramFosMedium: "fosMedium",
+        paramFarHigh: "farHigh",
+        paramFarMedium: "farMedium",
+        paramShadowVH: "shadowVH",
+        paramShadowHigh: "shadowHigh",
+        paramShadowMedium: "shadowMedium",
+        paramOpacity: "visualOpacity",
+        paramPointSize: "visualPointSize",
+        paramOutlineWidth: "visualOutlineWidth"
+      };
+
+      for (const [elId, key] of Object.entries(mapping)) {
+        const input = document.getElementById(elId);
+        const valSpan = document.getElementById(elId.replace("param", "paramVal"));
+        if (input) {
+          input.value = params[key];
+          if (valSpan) valSpan.textContent = params[key];
+        }
+      }
+
+      const colorMapping = {
+        colorMuyAlto: "colorMuyAlto",
+        colorAlto: "colorAlto",
+        colorMedio: "colorMedio",
+        colorBajo: "colorBajo",
+        colorFosHigh: "colorFosHigh",
+        colorFosMedium: "colorFosMedium",
+        colorFosLow: "colorFosLow",
+        colorFosEmpty: "colorFosEmpty",
+        colorFarHigh: "colorFarHigh",
+        colorFarMedium: "colorFarMedium",
+        colorFarLow: "colorFarLow",
+        colorFarEmpty: "colorFarEmpty",
+        colorShadowVH: "colorShadowVH",
+        colorShadowHigh: "colorShadowHigh",
+        colorShadowMedium: "colorShadowMedium",
+        colorShadowLow: "colorShadowLow"
+      };
+
+      for (const [elId, key] of Object.entries(colorMapping)) {
+        const input = document.getElementById(elId);
+        if (input) input.value = params[key];
+      }
+    }
+
+    function updateCqlIndicator() {
+      const highNear = getConfig("highNearGreen");
+      if (highNear) {
+        const el = document.getElementById("cql-highNearGreen");
+        if (el) el.textContent = "Filtro: " + getCqlFilterDescription(highNear);
+      }
+      const highShadow = getConfig("highShadowRisk");
+      if (highShadow) {
+        const el = document.getElementById("cql-highShadowRisk");
+        if (el) el.textContent = "Filtro: " + getCqlFilterDescription(highShadow);
+      }
+    }
+
     async function loadAll() {
       setStatus("Cargando 3D Tiles...", "loading");
       createLayerControls();
       allLayerConfigs().forEach(bindAnalysisToggle);
+      initParamsPanel();
 
       try {
         await loadTilesets();
@@ -1006,7 +1659,7 @@
           failedCount++;
           reportLayerFailure(layerError);
 
-          const toggle = document.getElementById(`toggle-${config.id}`);
+          const toggle = document.getElementById("toggle-" + config.id);
           if (toggle) {
             toggle.checked = false;
           }
@@ -1016,7 +1669,7 @@
       }
 
       if (failedCount > 0) {
-        setStatus(`Cargadas ${loadedCount}. Fallaron ${failedCount}. Ver consola.`, "error");
+        setStatus("Cargadas " + loadedCount + ". Fallaron " + failedCount + ". Ver consola.", "error");
       } else {
         setStatus("Datos cargados correctamente", "ok");
       }
@@ -1161,6 +1814,37 @@
       return best;
     }
 
+    function computeHeightCategoryLabel(heightM) {
+      if (heightM == null) return "bajo";
+      if (heightM >= params.heightMuyAlto) return "muy_alto";
+      if (heightM >= params.heightAlto) return "alto";
+      if (heightM >= params.heightMedio) return "medio";
+      return "bajo";
+    }
+
+    function computeFosLevel(fosPct) {
+      if (fosPct == null || fosPct === 0) return "EMPTY";
+      if (fosPct >= params.fosHigh) return "HIGH";
+      if (fosPct >= params.fosMedium) return "MEDIUM";
+      return "LOW";
+    }
+
+    function computeFarLevel(farRatio) {
+      if (farRatio == null || farRatio === 0) return "EMPTY";
+      if (farRatio >= params.farHigh) return "HIGH";
+      if (farRatio >= params.farMedium) return "MEDIUM";
+      return "LOW";
+    }
+
+    function computeShadowRiskLevel(score) {
+      if (score == null) return "LOW";
+      const pct = score * 100;
+      if (pct >= params.shadowVH) return "VERY_HIGH";
+      if (pct >= params.shadowHigh) return "HIGH";
+      if (pct >= params.shadowMedium) return "MEDIUM";
+      return "LOW";
+    }
+
     const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
 
     handler.setInputAction((movement) => {
@@ -1178,40 +1862,54 @@
       const featureType = entity.featureType || "-";
       const selectedLayer = entity.analysisType || "-";
 
-      const html = `
-        <p><b>Seleccionaste:</b> ${featureType}</p>
-        <p><b>Capa:</b> ${layerTitle}</p>
-        <p><b>ID interno capa:</b> ${selectedLayer}</p>
-        <p><b>Pregunta:</b> ${question}</p>
-        <p><b>Parcela:</b> ${formatValue(getProperty(entity, "parcel_id"))}</p>
+      const heightM = getProperty(entity, "height_m") || getProperty(entity, "max_building_height_m");
+      const heightCategory = heightM ? computeHeightCategoryLabel(heightM) : formatValue(getProperty(entity, "height_category"));
 
-        <p><b>FOS parcela:</b> ${formatValue(getProperty(entity, "fos_pct"))}%</p>
-        <p><b>Nivel FOS:</b> ${formatValue(getProperty(entity, "fos_level"))}</p>
-        <p><b>Ocupación edificio/parcela:</b> ${formatValue(getProperty(entity, "building_parcel_coverage_pct"))}%</p>
-        <p><b>Nivel edificio/parcela:</b> ${formatValue(getProperty(entity, "coverage_level"))}</p>
+      const fosPct = getProperty(entity, "fos_pct");
+      const fosLevel = fosPct ? computeFosLevel(fosPct) : formatValue(getProperty(entity, "fos_level"));
 
-        <p><b>FAR:</b> ${formatValue(getProperty(entity, "far_ratio"))}</p>
-        <p><b>Nivel FAR:</b> ${formatValue(getProperty(entity, "far_level"))}</p>
-        <p><b>Área construida estimada:</b> ${formatValue(getProperty(entity, "estimated_floor_area_m2"))} m²</p>
-        <p><b>Pisos estimados máx.:</b> ${formatValue(getProperty(entity, "max_estimated_floors"))}</p>
+      const farRatio = getProperty(entity, "far_ratio");
+      const farLevel = farRatio ? computeFarLevel(farRatio) : formatValue(getProperty(entity, "far_level"));
 
-        <p><b>Área parcela:</b> ${formatValue(getProperty(entity, "parcel_area_m2"))} m²</p>
-        <p><b>Área ocupada:</b> ${formatValue(getProperty(entity, "occupied_area_m2"))} m²</p>
-        <p><b>Edificios en parcela:</b> ${formatValue(getProperty(entity, "buildings_count"))}</p>
+      const coveragePct = getProperty(entity, "building_parcel_coverage_pct");
+      const coverageLevel = coveragePct ? computeFosLevel(coveragePct) : formatValue(getProperty(entity, "coverage_level"));
 
-        <p><b>Building ID:</b> ${formatValue(getProperty(entity, "building_gml_id") || getProperty(entity, "source_id"))}</p>
-        <p><b>GID:</b> ${formatValue(getProperty(entity, "gid"))}</p>
-        <p><b>Altura:</b> ${formatValue(getProperty(entity, "height_m") || getProperty(entity, "max_building_height_m"))} m</p>
-        <p><b>Categoría:</b> ${formatValue(getProperty(entity, "height_category"))}</p>
-        <p><b>Green ID:</b> ${formatValue(getProperty(entity, "green_id") || getProperty(entity, "id"))}</p>
-        <p><b>Distancia al verde:</b> ${formatValue(getProperty(entity, "distance_to_green_m"))} m</p>
+      const shadowScore = getProperty(entity, "shadow_risk_score");
+      const shadowLevel = shadowScore ? computeShadowRiskLevel(shadowScore) : formatValue(getProperty(entity, "shadow_risk_level"));
 
-        <p><b>Score sombra:</b> ${formatValue(getProperty(entity, "shadow_risk_score"))}</p>
-        <p><b>Nivel sombra:</b> ${formatValue(getProperty(entity, "shadow_risk_level"))}</p>
-        <p><b>Motivo sombra:</b> ${formatValue(getProperty(entity, "shadow_risk_reason"))}</p>
-        <p><b>Hora proyectada sombra:</b> ${SHADOW_SCENARIO_LOCAL_HOUR}</p>
-        <p><b>Escenario sombra:</b> ${SHADOW_SCENARIO_SEASON} (azimut ${formatValue(getProperty(entity, "sun_azimuth_deg"), SHADOW_SCENARIO_AZIMUTH_DEG)}°, elevación ${formatValue(getProperty(entity, "sun_elevation_deg"), SHADOW_SCENARIO_ELEVATION_DEG)}°)</p>
-      `;
+      const html =
+        "<p><b>Seleccionaste:</b> " + featureType + "</p>" +
+        "<p><b>Capa:</b> " + layerTitle + "</p>" +
+        "<p><b>ID interno capa:</b> " + selectedLayer + "</p>" +
+        "<p><b>Pregunta:</b> " + question + "</p>" +
+        "<p><b>Parcela:</b> " + formatValue(getProperty(entity, "parcel_id")) + "</p>" +
+
+        "<p><b>FOS parcela:</b> " + formatValue(fosPct) + "%</p>" +
+        "<p><b>Nivel FOS:</b> " + fosLevel + "</p>" +
+        "<p><b>Ocupación edificio/parcela:</b> " + formatValue(coveragePct) + "%</p>" +
+        "<p><b>Nivel edificio/parcela:</b> " + coverageLevel + "</p>" +
+
+        "<p><b>FAR:</b> " + formatValue(farRatio) + "</p>" +
+        "<p><b>Nivel FAR:</b> " + farLevel + "</p>" +
+        "<p><b>Área construida estimada:</b> " + formatValue(getProperty(entity, "estimated_floor_area_m2")) + " m²</p>" +
+        "<p><b>Pisos estimados máx.:</b> " + formatValue(getProperty(entity, "max_estimated_floors")) + "</p>" +
+
+        "<p><b>Área parcela:</b> " + formatValue(getProperty(entity, "parcel_area_m2")) + " m²</p>" +
+        "<p><b>Área ocupada:</b> " + formatValue(getProperty(entity, "occupied_area_m2")) + " m²</p>" +
+        "<p><b>Edificios en parcela:</b> " + formatValue(getProperty(entity, "buildings_count")) + "</p>" +
+
+        "<p><b>Building ID:</b> " + formatValue(getProperty(entity, "building_gml_id") || getProperty(entity, "source_id")) + "</p>" +
+        "<p><b>GID:</b> " + formatValue(getProperty(entity, "gid")) + "</p>" +
+        "<p><b>Altura:</b> " + formatValue(heightM) + " m</p>" +
+        "<p><b>Categoría:</b> " + heightCategory + "</p>" +
+        "<p><b>Green ID:</b> " + formatValue(getProperty(entity, "green_id") || getProperty(entity, "id")) + "</p>" +
+        "<p><b>Distancia al verde:</b> " + formatValue(getProperty(entity, "distance_to_green_m")) + " m</p>" +
+
+        "<p><b>Score sombra:</b> " + formatValue(shadowScore) + "</p>" +
+        "<p><b>Nivel sombra:</b> " + shadowLevel + "</p>" +
+        "<p><b>Motivo sombra:</b> " + formatValue(getProperty(entity, "shadow_risk_reason")) + "</p>" +
+        "<p><b>Hora proyectada sombra:</b> " + SHADOW_SCENARIO_LOCAL_HOUR + "</p>" +
+        "<p><b>Escenario sombra:</b> " + SHADOW_SCENARIO_SEASON + " (azimut " + formatValue(getProperty(entity, "sun_azimuth_deg"), SHADOW_SCENARIO_AZIMUTH_DEG) + "°, elevación " + formatValue(getProperty(entity, "sun_elevation_deg"), SHADOW_SCENARIO_ELEVATION_DEG) + "°)</p>";
 
       showPopup(layerTitle, html);
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);

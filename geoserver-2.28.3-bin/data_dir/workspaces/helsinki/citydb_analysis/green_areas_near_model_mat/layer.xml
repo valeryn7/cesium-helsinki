@@ -1,16 +1,16 @@
 <layer>
   <name>green_areas_near_model_mat</name>
-  <id>LayerInfoImpl--486c3543:19e618c610c:-7539</id>
+  <id>LayerInfoImpl-438e07a2:19e81d1e46b:-7ffe</id>
   <type>VECTOR</type>
   <defaultStyle>
     <id>StyleInfoImpl--570ae188:124761b8d78:-7fe0</id>
   </defaultStyle>
   <resource class="featureType">
-    <id>FeatureTypeInfoImpl--486c3543:19e618c610c:-753a</id>
+    <id>FeatureTypeInfoImpl-438e07a2:19e81d1e46b:-7fff</id>
   </resource>
   <attribution>
     <logoWidth>0</logoWidth>
     <logoHeight>0</logoHeight>
   </attribution>
-  <dateCreated>2026-05-26 02:32:26.786 UTC</dateCreated>
+  <dateCreated>2026-06-01 06:14:37.75 UTC</dateCreated>
 </layer>

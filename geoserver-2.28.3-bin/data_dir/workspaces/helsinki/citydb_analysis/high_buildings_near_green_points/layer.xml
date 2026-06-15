@@ -1,16 +1,16 @@
 <layer>
   <name>high_buildings_near_green_points</name>
-  <id>LayerInfoImpl--486c3543:19e618c610c:-7533</id>
+  <id>LayerInfoImpl-438e07a2:19e81d1e46b:-7ff8</id>
   <type>VECTOR</type>
   <defaultStyle>
     <id>StyleInfoImpl--570ae188:124761b8d78:-7fdf</id>
   </defaultStyle>
   <resource class="featureType">
-    <id>FeatureTypeInfoImpl--486c3543:19e618c610c:-7534</id>
+    <id>FeatureTypeInfoImpl-438e07a2:19e81d1e46b:-7ff9</id>
   </resource>
   <attribution>
     <logoWidth>0</logoWidth>
     <logoHeight>0</logoHeight>
   </attribution>
-  <dateCreated>2026-05-26 02:32:27.482 UTC</dateCreated>
+  <dateCreated>2026-06-01 06:14:37.175 UTC</dateCreated>
 </layer>

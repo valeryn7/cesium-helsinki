@@ -1,16 +1,16 @@
 <layer>
   <name>high_shadow_risk_green_points</name>
-  <id>LayerInfoImpl-4a9faa1:19e625a554c:-7c02</id>
+  <id>LayerInfoImpl-438e07a2:19e81d1e46b:-7fec</id>
   <type>VECTOR</type>
   <defaultStyle>
-    <id>StyleInfoImpl--570ae188:124761b8d78:-7fdf</id>
+    <id>StyleInfoImpl--570ae188:124761b8d78:-7fe0</id>
   </defaultStyle>
   <resource class="featureType">
-    <id>FeatureTypeInfoImpl-4a9faa1:19e625a554c:-7c03</id>
+    <id>FeatureTypeInfoImpl-438e07a2:19e81d1e46b:-7fed</id>
   </resource>
   <attribution>
     <logoWidth>0</logoWidth>
     <logoHeight>0</logoHeight>
   </attribution>
-  <dateCreated>2026-05-26 03:37:52.675 UTC</dateCreated>
+  <dateCreated>2026-06-01 06:14:37.353 UTC</dateCreated>
 </layer>

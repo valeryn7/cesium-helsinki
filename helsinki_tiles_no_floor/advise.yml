@@ -6,7 +6,7 @@ commandset:
     db_password: ''
     db_port: 5432
     db_schema: citydb
-    db_username: valerynater
+    db_username: joaquin
     exclude_objectclass:
     - GroundSurface
     - OuterFloorSurface
@@ -19,7 +19,7 @@ commandset:
     tiler_app: pg2b3dm
     tilers_path: tiler_app/
     transparency: opaque
-max_features: 121
+max_features: 93
 objectclasses:
 -   name: Bridge
     properties:

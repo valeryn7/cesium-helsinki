@@ -1,5 +1,5 @@
 <featureType>
-  <id>FeatureTypeInfoImpl--486c3543:19e618c610c:-7536</id>
+  <id>FeatureTypeInfoImpl-438e07a2:19e81d1e46b:-7ffb</id>
   <name>buildings_near_green_points_mat</name>
   <nativeName>buildings_near_green_points_mat</nativeName>
   <namespace>
@@ -28,7 +28,7 @@
   <projectionPolicy>FORCE_DECLARED</projectionPolicy>
   <enabled>true</enabled>
   <store class="dataStore">
-    <id>DataStoreInfoImpl--486c3543:19e618c610c:-753b</id>
+    <id>DataStoreInfoImpl-438e07a2:19e81d1e46b:-8000</id>
   </store>
   <serviceConfiguration>false</serviceConfiguration>
   <maxFeatures>0</maxFeatures>
