@@ -147,7 +147,7 @@ LIMIT 20;
 
 CREATE MATERIALIZED VIEW analysis.green_areas_near_model_mat AS
 SELECT DISTINCT
-  g.gid,
+  g.id,
 
   ST_Multi(
     ST_CollectionExtract(
@@ -209,7 +209,7 @@ SELECT
   b.height_m,
   b.height_category,
 
-  nearest_green.gid AS green_id,
+  nearest_green.id AS green_id,
 
   ROUND(
     ST_Distance(
@@ -224,7 +224,7 @@ SELECT
 FROM analysis.building_height_points_mat b
 JOIN LATERAL (
   SELECT
-  g.gid,
+    g.id,
     g.geom
   FROM analysis.green_areas_near_model_mat g
   ORDER BY

@@ -243,6 +243,29 @@
       flex-wrap: wrap;
     }
 
+    .param-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .param-row label {
+      font-size: 11.5px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .param-row input {
+      width: 110px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      padding: 8px 9px;
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+      font-size: 12px;
+    }
+
     button {
       border: 0;
       border-radius: 12px;
@@ -667,6 +690,22 @@
         </div>
       </div>
 
+      <div class="param-group">
+        <div class="param-group-title">Consulta por edificio</div>
+        <div id="singleBuildingInfo" style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:6px;">
+          Seleccioná un edificio en el mapa y luego elegí una distancia para calcular plazas cercanas.
+        </div>
+        <div class="param-row">
+          <span class="param-label">Distancia edificio-plazas</span>
+          <input type="range" class="param-slider" id="paramBuildingDist" min="50" max="2000" value="500" step="50" />
+          <span class="param-value" id="paramValBuildingDist">500</span><span style="font-size:11px;color:rgba(255,255,255,0.5);">m</span>
+        </div>
+        <div class="param-row" style="margin-top:10px;gap:6px;">
+          <button id="runSingleBuildingAnalysis" type="button">Calcular plazas cercanas</button>
+          <button id="resetSingleBuildingAnalysis" type="button">Reset</button>
+        </div>
+      </div>
+
       <button class="btn-reset" id="btnResetParams">Restaurar valores</button>
     </div>
 
@@ -747,7 +786,8 @@
         colorShadowLow: "#facc15",
         visualOpacity: 30,
         visualPointSize: 9,
-        visualOutlineWidth: 2
+        visualOutlineWidth: 2,
+        buildingDist: 500
       };
     }
 
@@ -808,6 +848,9 @@
     let highlightedOriginalMaterial = null;
     let highlightedOriginalOutlineColor = null;
     let highlightedOriginalOutlineWidth = null;
+    let selectedBuildingForAnalysis = null;
+    let selectedBuildingMarkerDataSource = null;
+    const greenLayerOriginalState = new WeakMap();
 
     const statusDot = document.getElementById("statusDot");
     const statusText = document.getElementById("statusText");
@@ -816,6 +859,10 @@
     const popupContent = document.getElementById("popupContent");
     const controls = document.getElementById("analysisControls");
     const shadowScenarioInfo = document.getElementById("shadowScenarioInfo");
+    const singleBuildingInfo = document.getElementById("singleBuildingInfo");
+    const distanceThresholdInput = null;
+    const runSingleBuildingAnalysisButton = document.getElementById("runSingleBuildingAnalysis");
+    const resetSingleBuildingAnalysisButton = document.getElementById("resetSingleBuildingAnalysis");
 
     function shadowScenarioLabel() {
       return `Escenario de sombra proyectada: ${SHADOW_SCENARIO_SEASON}, ${SHADOW_SCENARIO_LOCAL_HOUR} (azimut ${SHADOW_SCENARIO_AZIMUTH_DEG}°, elevación ${SHADOW_SCENARIO_ELEVATION_DEG}°).`;
@@ -902,6 +949,17 @@
             cqlFilter: "shadow_risk_score>=__shadowThreshold__",
             question: "¿Qué edificios tienen riesgo alto de sombra sobre espacios verdes?",
             featureType: "Edificio con alto riesgo de sombra"
+          },
+          {
+            id: "selectedBuildingGreenDistance",
+            title: "Distancia edificio-plazas",
+            desc: "Resultado dinámico del último cálculo",
+            color: "#facc15",
+            defaultShow: false,
+            geometry: "point",
+            runtime: true,
+            question: "¿Qué plazas quedan dentro de la distancia elegida para el edificio seleccionado?",
+            featureType: "Plaza cercana al edificio"
           }
         ]
       },
@@ -1019,6 +1077,384 @@
     function formatValue(value, fallback) {
       if (value === undefined || value === null || value === "") return fallback || "-";
       return value;
+    }
+
+    function getEntityAnchorPosition(entity) {
+      if (entity.position) {
+        const point = entity.position.getValue(Cesium.JulianDate.now());
+        if (point) return point;
+      }
+
+      if (entity.polygon && entity.polygon.hierarchy) {
+        const hierarchy = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now());
+        const positions = hierarchy && hierarchy.positions ? hierarchy.positions : [];
+
+        if (positions.length > 0) {
+          return Cesium.BoundingSphere.fromPoints(positions).center;
+        }
+      }
+
+      return null;
+    }
+
+    function saveGreenEntityOriginalState(entity) {
+      if (greenLayerOriginalState.has(entity) || !entity.polygon) return;
+
+      greenLayerOriginalState.set(entity, {
+        show: entity.show,
+        material: entity.polygon.material,
+        outlineColor: entity.polygon.outlineColor,
+        outlineWidth: entity.polygon.outlineWidth
+      });
+    }
+
+    function ensureSelectedBuildingMarkerDataSource() {
+      if (selectedBuildingMarkerDataSource) return selectedBuildingMarkerDataSource;
+
+      selectedBuildingMarkerDataSource = new Cesium.CustomDataSource("Edificio seleccionado");
+      viewer.dataSources.add(selectedBuildingMarkerDataSource);
+      return selectedBuildingMarkerDataSource;
+    }
+
+    function selectedBuildingMarkerTop(anchor) {
+      const cartographic = Cesium.Cartographic.fromCartesian(anchor);
+      const height = Number.isFinite(cartographic.height) ? cartographic.height : 0;
+      return Cesium.Cartesian3.fromRadians(
+        cartographic.longitude,
+        cartographic.latitude,
+        height + 55
+      );
+    }
+
+    function markSelectedBuilding(buildingId, anchor) {
+      const ds = ensureSelectedBuildingMarkerDataSource();
+      const top = selectedBuildingMarkerTop(anchor);
+      const markerColor = Cesium.Color.fromCssColorString("#06b6d4");
+      const markerOutlineColor = Cesium.Color.fromCssColorString("#083344");
+
+      ds.entities.removeAll();
+      ds.entities.add({
+        id: "selected-building-marker-line",
+        polyline: new Cesium.PolylineGraphics({
+          positions: [anchor, top],
+          width: 4,
+          material: markerColor,
+          clampToGround: false
+        })
+      });
+      ds.entities.add({
+        id: "selected-building-marker",
+        position: top,
+        point: new Cesium.PointGraphics({
+          color: markerColor,
+          pixelSize: 18,
+          outlineColor: markerOutlineColor,
+          outlineWidth: 3,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY
+        }),
+        label: new Cesium.LabelGraphics({
+          text: "Edificio seleccionado",
+          font: "13px sans-serif",
+          fillColor: Cesium.Color.WHITE,
+          outlineColor: markerOutlineColor,
+          outlineWidth: 4,
+          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          pixelOffset: new Cesium.Cartesian2(0, -28),
+          disableDepthTestDistance: Number.POSITIVE_INFINITY
+        }),
+        properties: new Cesium.PropertyBag({
+          building_id: buildingId
+        })
+      });
+
+      refreshScene();
+    }
+
+    function setSelectedBuildingAnchorForAnalysis(buildingId, anchor, sourceLabel = "capa") {
+      if (!buildingId || !anchor) return false;
+
+      selectedBuildingForAnalysis = {
+        buildingId,
+        anchor
+      };
+
+      markSelectedBuilding(buildingId, anchor);
+
+      if (singleBuildingInfo) {
+        singleBuildingInfo.textContent =
+          `Edificio seleccionado para análisis: ${buildingId} (${sourceLabel}). Elegí distancia y ejecutá el cálculo.`;
+      }
+
+      return true;
+    }
+
+    function setSelectedBuildingForAnalysis(entity) {
+      const buildingId = getProperty(entity, "building_gml_id") || getProperty(entity, "source_id");
+      const anchor = getEntityAnchorPosition(entity);
+
+      return setSelectedBuildingAnchorForAnalysis(buildingId, anchor, entity.layerTitle || "capa");
+    }
+
+    function getPickedFeatureProperty(feature, names) {
+      if (!feature) return undefined;
+
+      for (const name of names) {
+        try {
+          if (typeof feature.hasProperty === "function" && feature.hasProperty(name)) {
+            return feature.getProperty(name);
+          }
+        } catch (error) {
+          console.warn("No se pudo leer propiedad de 3D Tile:", name, error);
+        }
+      }
+
+      return undefined;
+    }
+
+    function getPickedBuildingId(feature) {
+      return getPickedFeatureProperty(feature, [
+        "building_gml_id",
+        "gml_id",
+        "gmlid",
+        "gml:id",
+        "objectid",
+        "objectId",
+        "source_id",
+        "id",
+        "citydb_id"
+      ]);
+    }
+
+    function getPickAnchorPosition(position) {
+      if (viewer.scene.pickPositionSupported) {
+        const pickedPosition = viewer.scene.pickPosition(position);
+        if (Cesium.defined(pickedPosition)) return pickedPosition;
+      }
+
+      return viewer.camera.pickEllipsoid(position, viewer.scene.globe.ellipsoid);
+    }
+
+    function pickTilesetBuildingForAnalysis(position) {
+      const picks = viewer.scene.drillPick(position, 16);
+      const anchor = getPickAnchorPosition(position);
+
+      if (!anchor) return null;
+
+      for (const pick of picks) {
+        const feature = pick && typeof pick.getProperty === "function" ? pick : null;
+        if (!feature || typeof feature.getProperty !== "function") continue;
+
+        const buildingId = getPickedBuildingId(feature) || "edificio seleccionado";
+        return {
+          buildingId,
+          anchor
+        };
+      }
+
+      return null;
+    }
+
+    function entityDistanceToAnchorMeters(entity, anchor) {
+      if (entity.polygon && entity.polygon.hierarchy) {
+        const hierarchy = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now());
+        const positions = hierarchy && hierarchy.positions ? hierarchy.positions : [];
+
+        if (positions.length > 0) {
+          let minDistance = Number.POSITIVE_INFINITY;
+
+          for (const position of positions) {
+            const distance = Cesium.Cartesian3.distance(position, anchor);
+            if (distance < minDistance) {
+              minDistance = distance;
+            }
+          }
+
+          return minDistance;
+        }
+      }
+
+      if (entity.position) {
+        const point = entity.position.getValue(Cesium.JulianDate.now());
+        if (point) {
+          return Cesium.Cartesian3.distance(point, anchor);
+        }
+      }
+
+      return Number.POSITIVE_INFINITY;
+    }
+
+    async function ensureLayerLoaded(layerId) {
+      if (loadedLayers[layerId]) {
+        loadedLayers[layerId].show = true;
+        refreshScene();
+        return loadedLayers[layerId];
+      }
+
+      const config = allLayerConfigs().find((item) => item.id === layerId);
+      if (!config) {
+        throw new Error(`No existe configuración para capa: ${layerId}`);
+      }
+
+      if (!loadingLayers[layerId]) {
+        setLayerLoading(layerId, true, "Cargando capa...");
+        setStatus(`Cargando capa: ${config.title}...`, "loading");
+
+        loadingLayers[layerId] = loadAnalysisLayer(config, true)
+          .then(() => {
+            setStatus(`Capa lista: ${config.title}`, "ok");
+          })
+          .catch((layerError) => {
+            reportLayerFailure(layerError);
+            throw layerError;
+          })
+          .finally(() => {
+            setLayerLoading(layerId, false);
+            loadingLayers[layerId] = null;
+          });
+      }
+
+      await loadingLayers[layerId];
+
+      if (!loadedLayers[layerId]) {
+        throw new Error(`No se pudo cargar la capa: ${layerId}`);
+      }
+
+      return loadedLayers[layerId];
+    }
+
+    function resetSingleBuildingGreenAnalysis() {
+      const greenLayer = loadedLayers.green;
+      if (loadedLayers.selectedBuildingGreenDistance) {
+        viewer.dataSources.remove(loadedLayers.selectedBuildingGreenDistance, true);
+        loadedLayers.selectedBuildingGreenDistance = null;
+      }
+
+      const distanceToggle = document.getElementById("toggle-selectedBuildingGreenDistance");
+      if (distanceToggle) distanceToggle.checked = false;
+
+      if (!greenLayer) {
+        refreshScene();
+        return;
+      }
+
+      for (const entity of greenLayer.entities.values) {
+        if (!entity.polygon) continue;
+
+        const original = greenLayerOriginalState.get(entity);
+        if (!original) continue;
+
+        entity.show = original.show;
+        entity.polygon.material = original.material;
+        entity.polygon.outlineColor = original.outlineColor;
+        entity.polygon.outlineWidth = original.outlineWidth;
+      }
+
+      refreshScene();
+    }
+
+    function createSelectedBuildingDistanceLayer(places, thresholdMeters) {
+      if (loadedLayers.selectedBuildingGreenDistance) {
+        viewer.dataSources.remove(loadedLayers.selectedBuildingGreenDistance, true);
+      }
+
+      const ds = new Cesium.CustomDataSource("Distancia edificio-plazas");
+      ds.show = true;
+      viewer.dataSources.add(ds);
+
+      places.forEach((place, index) => {
+        ds.entities.add({
+          id: `selected-building-green-distance-${index}`,
+          position: place.anchor,
+          point: new Cesium.PointGraphics({
+            color: Cesium.Color.fromCssColorString("#facc15"),
+            pixelSize: 12,
+            outlineColor: Cesium.Color.fromCssColorString("#14532d"),
+            outlineWidth: 2,
+            disableDepthTestDistance: Number.POSITIVE_INFINITY
+          }),
+          label: new Cesium.LabelGraphics({
+            text: `${Math.round(place.distance)} m`,
+            font: "12px sans-serif",
+            fillColor: Cesium.Color.WHITE,
+            outlineColor: Cesium.Color.BLACK,
+            outlineWidth: 3,
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            pixelOffset: new Cesium.Cartesian2(0, -18),
+            disableDepthTestDistance: Number.POSITIVE_INFINITY
+          }),
+          properties: new Cesium.PropertyBag({
+            green_id: place.greenId,
+            distance_from_selected_building_m: Math.round(place.distance * 100) / 100,
+            selected_building_id: selectedBuildingForAnalysis.buildingId,
+            threshold_m: thresholdMeters
+          })
+        });
+      });
+
+      ds.entities.values.forEach((entity) => {
+        entity.analysisType = "selectedBuildingGreenDistance";
+        entity.layerTitle = "Distancia edificio-plazas";
+        entity.question = "¿Qué plazas quedan dentro de la distancia elegida para el edificio seleccionado?";
+        entity.featureType = "Plaza cercana al edificio";
+      });
+
+      loadedLayers.selectedBuildingGreenDistance = ds;
+
+      const distanceToggle = document.getElementById("toggle-selectedBuildingGreenDistance");
+      if (distanceToggle) distanceToggle.checked = true;
+    }
+
+    async function runSingleBuildingGreenAnalysis() {
+      if (!selectedBuildingForAnalysis) {
+        setStatus("Primero seleccioná un edificio para el análisis.", "error");
+        return;
+      }
+
+      const thresholdMeters = params.buildingDist;
+
+      if (!Number.isFinite(thresholdMeters) || thresholdMeters <= 0) {
+        setStatus("La distancia debe ser un número mayor a 0.", "error");
+        return;
+      }
+
+      let greenLayer;
+      try {
+        greenLayer = await ensureLayerLoaded("green");
+      } catch (error) {
+        console.error("No se pudo cargar la capa de plazas para análisis por edificio:", error);
+        setStatus("No se pudo cargar la capa de plazas.", "error");
+        return;
+      }
+
+      let nearCount = 0;
+      const nearPlaces = [];
+
+      for (const entity of greenLayer.entities.values) {
+        if (!entity.polygon) continue;
+
+        saveGreenEntityOriginalState(entity);
+
+        const distance = entityDistanceToAnchorMeters(entity, selectedBuildingForAnalysis.anchor);
+        const isNear = distance <= thresholdMeters;
+
+        entity.show = isNear;
+
+        if (isNear) {
+          nearCount++;
+          nearPlaces.push({
+            greenId: getProperty(entity, "green_id") || getProperty(entity, "id") || "-",
+            anchor: getEntityAnchorPosition(entity),
+            distance
+          });
+          entity.polygon.material = Cesium.Color.fromCssColorString("#22c55e").withAlpha(0.45);
+          entity.polygon.outlineColor = Cesium.Color.fromCssColorString("#facc15");
+          entity.polygon.outlineWidth = 3;
+        }
+      }
+
+      createSelectedBuildingDistanceLayer(nearPlaces.filter((place) => place.anchor), thresholdMeters);
+      refreshScene();
+      setStatus(`Plazas cercanas encontradas: ${nearCount} (radio ${Math.round(thresholdMeters)} m).`, "ok");
     }
 
     function createLayerControls() {
@@ -1179,8 +1615,16 @@
         const text = await response.text();
 
         if (!response.ok) {
-          console.error("Respuesta HTTP incorrecta:", response.status);
-          throw new Error("Falló " + config.typeName + ": HTTP " + response.status);
+          console.error("Respuesta HTTP incorrecta:", response.status, response.statusText);
+          console.error("Respuesta completa:", text);
+
+          if (response.status === 404) {
+            console.error(
+              "WFS devolvió 404. Suele indicar endpoint GeoServer incorrecto, workspace/layer no publicada, o puerto 8080 ocupado por otro servicio."
+            );
+          }
+
+          throw new Error(`Falló ${config.typeName}: HTTP ${response.status}`);
         }
 
         if (text.trim().startsWith("<")) {
@@ -1347,6 +1791,26 @@
       if (!toggle) return;
 
       toggle.addEventListener("change", async (event) => {
+        if (config.runtime) {
+          if (!event.target.checked) {
+            if (loadedLayers[config.id]) {
+              loadedLayers[config.id].show = false;
+              refreshScene();
+            }
+            return;
+          }
+          if (loadedLayers[config.id]) {
+            loadedLayers[config.id].show = true;
+            refreshScene();
+          } else if (selectedBuildingForAnalysis) {
+            await runSingleBuildingGreenAnalysis();
+          } else {
+            event.target.checked = false;
+            setStatus("Primero seleccioná un edificio en el mapa.", "error");
+          }
+          return;
+        }
+
         if (!event.target.checked) {
           if (loadedLayers[config.id]) {
             loadedLayers[config.id].show = false;
@@ -1540,6 +2004,8 @@
         }
       });
 
+      initParamSlider("paramBuildingDist", "buildingDist", null);
+
       document.getElementById("btnResetParams").addEventListener("click", function () {
         const def = defaultParams();
         Object.assign(params, def);
@@ -1574,7 +2040,8 @@
         paramShadowMedium: "shadowMedium",
         paramOpacity: "visualOpacity",
         paramPointSize: "visualPointSize",
-        paramOutlineWidth: "visualOutlineWidth"
+        paramOutlineWidth: "visualOutlineWidth",
+        paramBuildingDist: "buildingDist"
       };
 
       for (const [elId, key] of Object.entries(mapping)) {
@@ -1702,6 +2169,19 @@
       refreshScene();
     });
 
+    if (runSingleBuildingAnalysisButton) {
+      runSingleBuildingAnalysisButton.addEventListener("click", () => {
+        runSingleBuildingGreenAnalysis();
+      });
+    }
+
+    if (resetSingleBuildingAnalysisButton) {
+      resetSingleBuildingAnalysisButton.addEventListener("click", () => {
+        resetSingleBuildingGreenAnalysis();
+        setStatus("Análisis por edificio reiniciado.", "ok");
+      });
+    }
+
     async function zoomToActiveTiles() {
       if (texturedTileset && texturedTileset.show) {
         await viewer.zoomTo(texturedTileset);
@@ -1787,11 +2267,12 @@
         parcelFos: 3,
         parcelFar: 4,
         buildingParcelCoverage: 5,
-        highNearGreen: 6,
-        heightPoints: 7,
-        nearGreen: 8,
-        green: 9,
-        parcels: 10
+        selectedBuildingGreenDistance: 6,
+        highNearGreen: 7,
+        heightPoints: 8,
+        nearGreen: 9,
+        green: 10,
+        parcels: 11
       };
 
       let best = null;
@@ -1851,11 +2332,33 @@
       const entity = pickPreferredEntity(movement.position);
 
       if (!entity) {
-        hidePopup();
+        const tilesetSelection = pickTilesetBuildingForAnalysis(movement.position);
+
+        if (!tilesetSelection) {
+          hidePopup();
+          return;
+        }
+
+        setSelectedBuildingAnchorForAnalysis(
+          tilesetSelection.buildingId,
+          tilesetSelection.anchor,
+          noFloorTileset && noFloorTileset.show ? "modelo sin piso" : "modelo 3D"
+        );
+
+        showPopup(
+          "Edificio seleccionado",
+          `
+            <p><b>Seleccionaste:</b> Edificio del modelo 3D</p>
+            <p><b>Building ID:</b> ${formatValue(tilesetSelection.buildingId)}</p>
+            <p><b>Origen:</b> ${noFloorTileset && noFloorTileset.show ? "Modelo sin piso" : "Modelo 3D"}</p>
+            <p><b>Consulta:</b> elegí una distancia y ejecutá el cálculo de plazas cercanas.</p>
+          `
+        );
         return;
       }
 
       highlightEntity(entity);
+      setSelectedBuildingForAnalysis(entity);
 
       const layerTitle = entity.layerTitle || "Capa de análisis";
       const question = entity.question || "-";
@@ -1904,6 +2407,8 @@
         "<p><b>Categoría:</b> " + heightCategory + "</p>" +
         "<p><b>Green ID:</b> " + formatValue(getProperty(entity, "green_id") || getProperty(entity, "id")) + "</p>" +
         "<p><b>Distancia al verde:</b> " + formatValue(getProperty(entity, "distance_to_green_m")) + " m</p>" +
+        "<p><b>Distancia al edificio seleccionado:</b> " + formatValue(getProperty(entity, "distance_from_selected_building_m")) + " m</p>" +
+        "<p><b>Radio usado:</b> " + formatValue(getProperty(entity, "threshold_m")) + " m</p>" +
 
         "<p><b>Score sombra:</b> " + formatValue(shadowScore) + "</p>" +
         "<p><b>Nivel sombra:</b> " + shadowLevel + "</p>" +
